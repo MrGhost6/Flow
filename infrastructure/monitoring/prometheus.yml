@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # 🌐 Scraping Central Flow Platform
+  - job_name: 'flow-platform'
+    metrics_path: '/api/metrics/performance'
+    static_configs:
+      - targets: ['flow-app:3000']

@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Outfit", var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-primary-fixed-dim: #a5c8ff;
+  --color-surface-tint: #a5c8ff;
+  --color-secondary-fixed-dim: #cabeff;
+  --color-inverse-surface: #dbe3ef;
+  --color-background: #0c141d;
+  --color-surface-variant: #2d353f;
+  --color-outline-variant: #404753;
+  --color-on-secondary-fixed: #1c0062;
+  --color-secondary-container: #4716cb;
+  --color-error: #ffb4ab;
+  --color-on-primary: #00315f;
+  --color-outline: #8a919f;
+  --color-inverse-on-surface: #29313a;
+  --color-surface-container-high: #232b34;
+  --color-tertiary-fixed-dim: #00dfc6;
+  --color-tertiary: #00dfc6;
+  --color-on-surface: #dbe3ef;
+  --color-on-tertiary: #003730;
+  --color-on-secondary-fixed-variant: #4711cb;
+  --color-error-container: #93000a;
+  --color-surface-bright: #323a43;
+  --color-primary: #a5c8ff;
+  --color-on-error: #690005;
+  --color-on-primary-fixed: #001c3a;
+  --color-on-primary-container: #002a53;
+  --color-on-primary-fixed-variant: #004786;
+  --color-primary-fixed: #d4e3ff;
+  --color-on-tertiary-fixed-variant: #005046;
+  --color-on-error-container: #ffdad6;
+  --color-secondary: #cabeff;
+  --color-on-tertiary-container: #003029;
+  --color-on-secondary: #30009a;
+  --color-surface-dim: #0c141d;
+  --color-tertiary-container: #00a390;
+  --color-surface-container-highest: #2d353f;
+  --color-surface: #0c141d;
+  --color-secondary-fixed: #e6deff;
+  --color-tertiary-fixed: #47fce2;
+  --color-primary-container: #2792ff;
+  --color-on-background: #dbe3ef;
+  --color-surface-container-low: #141c25;
+  --color-on-tertiary-fixed: #00201b;
+  --color-on-surface-variant: #c0c7d6;
+  --color-inverse-primary: #005faf;
+  --color-on-secondary-container: #b8aaff;
+  --color-surface-container: #182029;
+  --color-surface-container-lowest: #070f17;
+}
+
+@utility glass-card {
+  background: rgba(24, 32, 41, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(64, 71, 83, 0.2);
+  border-radius: 1.5rem;
+}
+
+@utility liquid-gradient {
+  background: linear-gradient(135deg, #2792ff, #4716cb);
+}
+
+@utility liquid-text {
+  background: linear-gradient(135deg, #a5c8ff, #cabeff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

@@ -1,0 +1,39 @@
+name: FLOW Deploy Staging (Regulatory Testbed)
+
+on:
+  push:
+    branches: [development]
+
+jobs:
+  deploy:
+    name: Package Image & Run Staging Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_STAGE }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY_STAGE }}
+          aws-region: eu-west-1
+
+      - name: Log in to Amazon ECR Private Registry
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Tag Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: flow-platform-stage
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:staging-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:staging-latest
+
+      - name: Force Redraw of AWS ECS Service Tasks
+        run: |
+          aws ecs update-service --cluster flow-stage-cluster --service flow-stage-web-service --force-new-deployment

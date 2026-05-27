@@ -1,0 +1,1039 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum UserType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum KYCLevel {
+  UNVERIFIED
+  BASIC
+  VERIFIED
+  PREMIUM
+}
+
+enum KYCStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  MAD
+  AED
+  BTC
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+  PAYMENT
+  REFUND
+  FEE
+  EXCHANGE
+  SPLIT_BILL
+  QR_PAYMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REVERSED
+}
+
+enum CardType {
+  VIRTUAL
+  PHYSICAL
+}
+
+enum CardStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  EXPIRED
+  CANCELLED
+}
+
+enum CardProvider {
+  VISA
+  MASTERCARD
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  PAID
+  PARTIALLY_PAID
+  CANCELLED
+  EXPIRED
+}
+
+enum SplitBillStatus {
+  OPEN
+  SETTLED
+  CANCELLED
+}
+
+enum SplitBillParticipantStatus {
+  PENDING
+  PAID
+  DECLINED
+}
+
+enum BudgetPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_ON_USER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationType {
+  TRANSACTION
+  SECURITY
+  KYC
+  PROMOTIONAL
+  SYSTEM
+  BILL
+  REMINDER
+  FRAUD_ALERT
+}
+
+enum FraudSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FraudStatus {
+  INVESTIGATING
+  CONFIRMED
+  FALSE_POSITIVE
+  RESOLVED
+}
+
+enum SecurityAlertType {
+  LOGIN_NEW_DEVICE
+  LOGIN_NEW_LOCATION
+  FAILED_LOGIN_ATTEMPT
+  PASSWORD_CHANGED
+  DEVICE_TRUSTED
+  SUSPICIOUS_ACTIVITY
+  ACCOUNT_LOCKED
+  OTP_REQUESTED
+}
+
+enum AuditAction {
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGOUT
+  PASSWORD_CHANGED
+  TRANSACTION_CREATED
+  TRANSACTION_APPROVED
+  TRANSACTION_REJECTED
+  WALLET_CREATED
+  CARD_ISSUED
+  CARD_BLOCKED
+  KYC_SUBMITTED
+  KYC_APPROVED
+  KYC_REJECTED
+  ADMIN_LOGIN
+  ADMIN_ACTION
+  FRAUD_DETECTED
+  SECURITY_ALERT
+  SPLIT_BILL_CREATED
+  PAYMENT_REQUEST_SENT
+}
+
+// ============================================================
+// 1. USERS
+// ============================================================
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  phone           String    @unique
+  passwordHash    String
+  userType        UserType  @default(INDIVIDUAL)
+  status          UserStatus @default(PENDING)
+  kycLevel        KYCLevel  @default(UNVERIFIED)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret String?
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  failedLoginAttempts Int   @default(0)
+  lockedUntil     DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  profile              UserProfile?
+  devices              Device[]
+  sessions             Session[]
+  kycVerifications     KYCVerification[]
+  wallets              Wallet[]
+  paymentRequestsSent  PaymentRequest[]  @relation("SentPaymentRequests")
+  paymentRequestsRecv  PaymentRequest[]  @relation("ReceivedPaymentRequests")
+  qrPayments           QRPayment[]
+  splitBillsCreated    SplitBill[]
+  splitBillParticipant SplitBillParticipant[]
+  budgets              Budget[]
+  savingsGoals         SavingsGoal[]
+  subscriptions        Subscription[]
+  aiInsights           AIInsight[]
+  businessMemberships  BusinessMember[]
+  supportTickets       SupportTicket[]
+  notifications        Notification[]
+  fraudEvents          FraudEvent[]
+   loginHistory         LoginHistory[]
+   securityAlerts       SecurityAlert[]
+   cards                Card[]
+   auditLogs            AuditLog[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@index([kycLevel])
+  @@map("users")
+}
+
+// ============================================================
+// 2. USER PROFILES
+// ============================================================
+
+model UserProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  firstName   String?
+  lastName    String?
+  dateOfBirth DateTime?
+  nationality String?
+  country     String?
+  city        String?
+  address     String?
+  postalCode  String?
+  avatarUrl   String?
+  occupation  String?
+  employer    String?
+  annualIncome Decimal? @db.Decimal(15, 2)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+// ============================================================
+// 3. DEVICES
+// ============================================================
+
+model Device {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  deviceName  String
+  deviceModel String?
+  os          String?
+  browser     String?
+  ipAddress   String?
+  location    String?
+  isTrusted   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  lastActive  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@map("devices")
+}
+
+// ============================================================
+// 4. SESSIONS
+// ============================================================
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @db.Uuid
+  refreshTokenHash String
+  deviceId     String?  @db.Uuid
+  ipAddress    String?
+  userAgent    String?
+  isActive     Boolean  @default(true)
+  expiresAt    DateTime
+  lastUsedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device Device? @relation(fields: [deviceId], references: [id])
+
+  @@index([userId])
+  @@index([refreshTokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ============================================================
+// 5. KYC VERIFICATIONS
+// ============================================================
+
+model KYCVerification {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  documentType    String
+  documentNumber String    @db.VarChar(255)
+  frontImageUrl   String?
+  backImageUrl    String?
+  selfieUrl       String?
+  status          KYCStatus @default(NOT_SUBMITTED)
+  level           KYCLevel  @default(UNVERIFIED)
+  rejectionReason String?
+  verifiedBy      String?   @db.Uuid
+  verifiedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("kyc_verifications")
+}
+
+// ============================================================
+// 6. WALLETS
+// ============================================================
+
+model Wallet {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  currency  Currency @default(USD)
+  balance   Decimal  @default(0) @db.Decimal(20, 2)
+  ledgerBalance Decimal @default(0) @db.Decimal(20, 2)
+  isActive  Boolean  @default(true)
+  label     String?  @default("Primary")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]     @relation("WalletTransactions")
+  sentTrans    Transaction[]     @relation("SenderWalletTransactions")
+  cards        Card[]
+  splitBills   SplitBill[]
+
+  @@unique([userId, currency])
+  @@index([userId])
+  @@index([currency])
+  @@map("wallets")
+}
+
+// ============================================================
+// 7. TRANSACTIONS
+// ============================================================
+
+model Transaction {
+  id              String            @id @default(uuid()) @db.Uuid
+  walletId        String            @db.Uuid
+  senderWalletId  String?           @db.Uuid
+  type            TransactionType
+  status          TransactionStatus @default(PENDING)
+  amount          Decimal           @db.Decimal(20, 2)
+  fee             Decimal           @default(0) @db.Decimal(20, 2)
+  currency        Currency          @default(USD)
+  exchangeRate    Decimal?          @db.Decimal(12, 6)
+  description     String?
+  reference       String?           @unique
+  categoryId      String?           @db.Uuid
+  merchantCategoryId String?        @db.Uuid
+  senderId        String?           @db.Uuid
+  recipientId     String?           @db.Uuid
+  recipientWallet String?
+  recipientName   String?
+  metadata        Json?
+  reversalReason  String?
+  reversedAt      DateTime?
+  failedReason    String?
+  approvedBy      String?           @db.Uuid
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  wallet         Wallet            @relation("WalletTransactions", fields: [walletId], references: [id])
+  senderWallet   Wallet?           @relation("SenderWalletTransactions", fields: [senderWalletId], references: [id])
+  category       SpendingCategory? @relation(fields: [categoryId], references: [id])
+  merchantCat    MerchantCategory? @relation(fields: [merchantCategoryId], references: [id])
+
+  @@index([walletId])
+  @@index([senderWalletId])
+  @@index([type])
+  @@index([status])
+  @@index([reference])
+  @@index([createdAt])
+  @@index([categoryId])
+  @@index([senderId])
+  @@index([recipientId])
+  @@map("transactions")
+}
+
+// ============================================================
+// 8. CARDS
+// ============================================================
+
+model Card {
+  id              String     @id @default(uuid()) @db.Uuid
+  walletId        String     @db.Uuid
+  userId          String     @db.Uuid
+  type            CardType   @default(VIRTUAL)
+  status          CardStatus @default(ACTIVE)
+  provider        CardProvider @default(VISA)
+  maskedPan       String
+  panHash         String     @unique
+  cvvHash         String
+  expiryMonth     Int
+  expiryYear      Int
+  cardholderName  String
+  issuingCountry  String?
+  currency        Currency   @default(USD)
+  dailyLimit      Decimal?   @db.Decimal(20, 2)
+  monthlyLimit    Decimal?   @db.Decimal(20, 2)
+  singleLimit     Decimal?   @db.Decimal(20, 2)
+  isDomesticOnly  Boolean    @default(false)
+  isContactless   Boolean    @default(true)
+  isOnlineEnabled Boolean    @default(true)
+  blockedReason   String?
+  frozenAt        DateTime?
+  activatedAt     DateTime?
+  lastUsedAt      DateTime?
+  expiresAt       DateTime
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([status])
+  @@index([maskedPan])
+  @@map("cards")
+}
+
+// ============================================================
+// 9. PAYMENT REQUESTS
+// ============================================================
+
+model PaymentRequest {
+  id              String               @id @default(uuid()) @db.Uuid
+  senderId        String               @db.Uuid
+  recipientId     String               @db.Uuid
+  walletId        String               @db.Uuid
+  amount          Decimal              @db.Decimal(20, 2)
+  currency        Currency             @default(USD)
+  description     String?
+  status          PaymentRequestStatus @default(PENDING)
+  transactionId   String?              @db.Uuid
+  expiresAt       DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  sender      User        @relation("SentPaymentRequests", fields: [senderId], references: [id])
+  recipient   User        @relation("ReceivedPaymentRequests", fields: [recipientId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([status])
+  @@map("payment_requests")
+}
+
+// ============================================================
+// 10. QR PAYMENTS
+// ============================================================
+
+model QRPayment {
+  id              String             @id @default(uuid()) @db.Uuid
+  userId          String             @db.Uuid
+  walletId        String             @db.Uuid
+  amount          Decimal            @db.Decimal(20, 2)
+  currency        Currency           @default(USD)
+  description     String?
+  qrCodeData      String
+  status          PaymentRequestStatus @default(PENDING)
+  scannedById     String?            @db.Uuid
+  transactionId   String?            @db.Uuid
+  expiresAt       DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("qr_payments")
+}
+
+// ============================================================
+// 11. SPLIT BILLS
+// ============================================================
+
+model SplitBill {
+  id            String         @id @default(uuid()) @db.Uuid
+  creatorId     String         @db.Uuid
+  walletId      String         @db.Uuid
+  title         String
+  totalAmount   Decimal        @db.Decimal(20, 2)
+  currency      Currency       @default(USD)
+  status        SplitBillStatus @default(OPEN)
+  settledAt     DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  creator      User                   @relation(fields: [creatorId], references: [id])
+  wallet       Wallet                 @relation(fields: [walletId], references: [id])
+  participants SplitBillParticipant[]
+
+  @@index([creatorId])
+  @@index([status])
+  @@map("split_bills")
+}
+
+// ============================================================
+// 12. SPLIT BILL PARTICIPANTS
+// ============================================================
+
+model SplitBillParticipant {
+  id              String                       @id @default(uuid()) @db.Uuid
+  splitBillId     String                       @db.Uuid
+  userId          String                       @db.Uuid
+  amount          Decimal                      @db.Decimal(20, 2)
+  status          SplitBillParticipantStatus   @default(PENDING)
+  transactionId   String?                      @db.Uuid
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  splitBill SplitBill @relation(fields: [splitBillId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([splitBillId, userId])
+  @@index([userId])
+  @@map("split_bill_participants")
+}
+
+// ============================================================
+// 13. SPENDING CATEGORIES
+// ============================================================
+
+model SpendingCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  icon        String?
+  color       String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions Transaction[]
+
+  @@map("spending_categories")
+}
+
+// ============================================================
+// 14. MERCHANT CATEGORIES
+// ============================================================
+
+model MerchantCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions Transaction[]
+
+  @@map("merchant_categories")
+}
+
+// ============================================================
+// 15. BUDGETS
+// ============================================================
+
+model Budget {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @db.Uuid
+  categoryId  String?      @db.Uuid
+  name        String
+  amount      Decimal      @db.Decimal(20, 2)
+  period      BudgetPeriod @default(MONTHLY)
+  startDate   DateTime
+  endDate     DateTime?
+  spent       Decimal      @default(0) @db.Decimal(20, 2)
+  rollover    Boolean      @default(false)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("budgets")
+}
+
+// ============================================================
+// 16. SAVINGS GOALS
+// ============================================================
+
+model SavingsGoal {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  name          String
+  targetAmount  Decimal  @db.Decimal(20, 2)
+  currentAmount Decimal  @default(0) @db.Decimal(20, 2)
+  currency      Currency @default(USD)
+  targetDate    DateTime?
+  isAutoSave    Boolean  @default(false)
+  autoSaveAmount Decimal? @db.Decimal(20, 2)
+  autoSaveFreq  String?
+  isCompleted   Boolean  @default(false)
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isCompleted])
+  @@map("savings_goals")
+}
+
+// ============================================================
+// 17. SUBSCRIPTIONS
+// ============================================================
+
+model Subscription {
+  id              String             @id @default(uuid()) @db.Uuid
+  userId          String             @db.Uuid
+  name            String
+  description     String?
+  amount          Decimal            @db.Decimal(20, 2)
+  currency        Currency           @default(USD)
+  billingCycle    String
+  provider        String?
+  categoryId      String?            @db.Uuid
+  nextBillingDate DateTime
+  status          SubscriptionStatus @default(ACTIVE)
+  cancelledAt     DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([nextBillingDate])
+  @@map("subscriptions")
+}
+
+// ============================================================
+// 18. AI INSIGHTS
+// ============================================================
+
+model AIInsight {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  type        String
+  title       String
+  description String
+  data        Json?
+  isRead      Boolean  @default(false)
+  isActioned  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("ai_insights")
+}
+
+// ============================================================
+// 19. CLIENTS (Invoice clients for businesses)
+// ============================================================
+
+model Client {
+  id          String   @id @default(uuid()) @db.Uuid
+  businessId  String   @db.Uuid
+  name        String
+  email       String?
+  phone       String?
+  address     String?
+  taxId       String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([businessId])
+  @@map("clients")
+}
+
+// ============================================================
+// 20. INVOICES
+// ============================================================
+
+model Invoice {
+  id            String    @id @default(uuid()) @db.Uuid
+  businessId    String    @db.Uuid
+  clientId      String?   @db.Uuid
+  invoiceNumber String    @unique
+  amount        Decimal   @db.Decimal(20, 2)
+  taxAmount     Decimal   @default(0) @db.Decimal(20, 2)
+  totalAmount   Decimal   @db.Decimal(20, 2)
+  currency      Currency  @default(USD)
+  description   String?
+  status        String    @default("DRAFT")
+  dueDate       DateTime?
+  paidAt        DateTime?
+  pdfUrl        String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  client   Client?  @relation(fields: [clientId], references: [id])
+
+  @@index([businessId])
+  @@index([clientId])
+  @@index([status])
+  @@index([invoiceNumber])
+  @@map("invoices")
+}
+
+// ============================================================
+// 21. BUSINESSES
+// ============================================================
+
+model Business {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  legalName     String?
+  email         String?  @unique
+  phone         String?
+  taxId         String?  @unique
+  registrationNumber String? @unique
+  industry      String?
+  website       String?
+  logoUrl       String?
+  country       String?
+  city          String?
+  address       String?
+  isVerified    Boolean  @default(false)
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members  BusinessMember[]
+  clients  Client[]
+  invoices Invoice[]
+
+  @@index([status])
+  @@map("businesses")
+}
+
+// ============================================================
+// 22. BUSINESS MEMBERS
+// ============================================================
+
+model BusinessMember {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  userId     String   @db.Uuid
+  role       String   @default("MEMBER")
+  isActive   Boolean  @default(true)
+  joinedAt   DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([businessId, userId])
+  @@index([userId])
+  @@map("business_members")
+}
+
+// ============================================================
+// 23. SUPPORT TICKETS
+// ============================================================
+
+model SupportTicket {
+  id          String               @id @default(uuid()) @db.Uuid
+  userId      String               @db.Uuid
+  subject     String
+  description String
+  status      SupportTicketStatus  @default(OPEN)
+  priority    SupportTicketPriority @default(MEDIUM)
+  category    String?
+  assignedTo  String?              @db.Uuid
+  resolvedAt  DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  user     User                    @relation(fields: [userId], references: [id])
+  messages SupportTicketMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@map("support_tickets")
+}
+
+// ============================================================
+// 24. SUPPORT TICKET MESSAGES
+// ============================================================
+
+model SupportTicketMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  ticketId   String   @db.Uuid
+  senderId   String   @db.Uuid
+  message    String
+  attachments Json?
+  isStaff    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([createdAt])
+  @@map("support_ticket_messages")
+}
+
+// ============================================================
+// 25. NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// 26. FRAUD EVENTS
+// ============================================================
+
+model FraudEvent {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @db.Uuid
+  ruleName    String
+  severity    FraudSeverity @default(MEDIUM)
+  status      FraudStatus   @default(INVESTIGATING)
+  description String
+  transactionId String?     @db.Uuid
+  ipAddress   String?
+  deviceId    String?       @db.Uuid
+  location    String?
+  metadata    Json?
+  reviewedBy  String?       @db.Uuid
+  reviewedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("fraud_events")
+}
+
+// ============================================================
+// 27. LOGIN HISTORY
+// ============================================================
+
+model LoginHistory {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  ipAddress  String?
+  userAgent  String?
+  deviceId   String?  @db.Uuid
+  location   String?
+  isSuccess  Boolean  @default(true)
+  failureReason String?
+  method     String   @default("PASSWORD")
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([isSuccess])
+  @@map("login_history")
+}
+
+// ============================================================
+// 28. SECURITY ALERTS
+// ============================================================
+
+model SecurityAlert {
+  id          String            @id @default(uuid()) @db.Uuid
+  userId      String            @db.Uuid
+  type        SecurityAlertType
+  title       String
+  description String
+  metadata    Json?
+  isRead      Boolean           @default(false)
+  isActioned  Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@map("security_alerts")
+}
+
+// ============================================================
+// 29. ADMIN USERS
+// ============================================================
+
+model AdminUser {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          String   @default("ADMIN")
+  isSuperAdmin  Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  permissions AdminPermission[]
+  auditLogs   AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@map("admin_users")
+}
+
+// ============================================================
+// 30. ADMIN PERMISSIONS
+// ============================================================
+
+model AdminPermission {
+  id          String   @id @default(uuid()) @db.Uuid
+  adminUserId String   @db.Uuid
+  module      String
+  canRead     Boolean  @default(false)
+  canWrite    Boolean  @default(false)
+  canDelete   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@unique([adminUserId, module])
+  @@map("admin_permissions")
+}
+
+// ============================================================
+// 31. AUDIT LOGS
+// ============================================================
+
+model AuditLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String?     @db.Uuid
+  adminUserId String?     @db.Uuid
+  action      AuditAction
+  resource    String
+  resourceId  String?
+  description String?
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  user      User?      @relation(fields: [userId], references: [id])
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id])
+
+  @@index([userId])
+  @@index([adminUserId])
+  @@index([action])
+  @@index([resource])
+  @@index([resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
