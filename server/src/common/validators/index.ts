@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const currencyEnum = z.enum(["USD", "EUR", "MAD"]);
-export const userTypeEnum = z.enum(["freelancer", "student", "traveler", "business"]);
+export const userTypeEnum = z.enum(["INDIVIDUAL", "BUSINESS"]);
 
 export const registerSchema = z.object({ name: z.string().min(1).max(100), email: z.string().email(), phone: z.string().optional(), password: z.string().min(8).max(128), userType: userTypeEnum.optional(), primaryCurrency: currencyEnum.optional(), country: z.string().optional() });
-export const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1), deviceName: z.string().optional(), deviceFingerprint: z.string().optional(), bypassMfa: z.boolean().optional() });
+export const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1), deviceName: z.string().optional(), deviceFingerprint: z.string().optional() });
 export const otpSchema = z.object({ verificationToken: z.string().min(1), otpCode: z.string().length(6) });
 export const resendOtpSchema = z.object({ verificationToken: z.string().min(1) });
 export const forgotPasswordSchema = z.object({ email: z.string().email() });
@@ -21,7 +21,7 @@ export const budgetSchema = z.object({ name: z.string().min(1), amount: z.number
 export const savingsGoalSchema = z.object({ title: z.string().min(1), targetAmount: z.number().positive(), currency: currencyEnum.optional(), targetDate: z.string().optional(), goalType: z.enum(["travel", "emergency_fund", "rent", "electronics", "vehicle", "education", "custom"]).optional() });
 export const savingsContributeSchema = z.object({ amount: z.number().positive() });
 export const kycSubmitSchema = z.object({ documentType: z.string().min(1), documentNumber: z.string().min(1) });
-export const ticketSchema = z.object({ subject: z.string().min(1).max(200), description: z.string().min(1).max(5000), category: z.string().optional(), priority: z.enum(["low", "medium", "high", "critical"]).optional() });
+export const ticketSchema = z.object({ subject: z.string().min(1).max(200), description: z.string().min(1).max(5000), category: z.string().optional(), priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional() });
 export const ticketMessageSchema = z.object({ message: z.string().min(1).max(10000) });
 export const clientSchema = z.object({ name: z.string().min(1), email: z.string().email().optional(), phone: z.string().optional(), address: z.string().optional(), taxId: z.string().optional() });
 export const invoiceSchema = z.object({ clientId: z.string().optional(), clientName: z.string().optional(), amount: z.number().positive(), description: z.string().optional(), dueDate: z.string().optional(), currency: currencyEnum.optional() });

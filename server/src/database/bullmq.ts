@@ -26,6 +26,30 @@ export function initQueues() {
   new Worker("flow-notification", async (job) => {
     console.log("[NOTIFICATION]", job.data);
   }, { connection: redis });
+
+  new Worker("flow-fraud", async (job) => {
+    console.log("[FRAUD] Analyzing:", job.name, job.data);
+    const { getPrisma } = await import("./prisma");
+    const p = getPrisma();
+    if (!p) return;
+    if (job.name === "high-value-transfer") {
+      const { userId, amount, currency, receiverId } = job.data;
+      await p.fraudEvent.create({
+        data: {
+          id: `fraud-${job.id || Date.now()}`,
+          userId,
+          ruleName: "high-value-transfer",
+          severity: "MEDIUM",
+          status: "INVESTIGATING",
+          description: `High value transfer: ${currency} ${amount} to ${receiverId}`,
+        },
+      });
+    }
+  }, { connection: redis });
+
+  new Worker("flow-transaction", async (job) => {
+    console.log("[TRANSACTION] Processing:", job.name, job.data);
+  }, { connection: redis });
 }
 
 export function getQueue(name: "email" | "notification" | "fraud" | "transaction") {

@@ -32,7 +32,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   trustDevice: async (id: string) => {
     try {
       const res = await fetch(`/api/security/devices/${id}/trust`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
       if (res.ok) {
@@ -72,7 +72,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
       });
       if (res.ok) {
         set({
-          devices: get().devices.filter(d => d.id !== id) // Session revoked removes device/session
+          devices: get().devices.filter(d => d.id !== id)
         });
         return true;
       }

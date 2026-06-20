@@ -80,7 +80,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           receiverIdentifier: transferFlow.recipient,
-          amount: transferFlow.amount,
+          amount: Number(transferFlow.amount),
           currency: transferFlow.currency
         })
       });
@@ -121,7 +121,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           receiverIdentifier: transferFlow.recipient,
-          amount: transferFlow.amount,
+          amount: Number(transferFlow.amount),
           currency: transferFlow.currency,
           description: transferFlow.description || `Split transfer via FLOW`,
           category: transferFlow.category || 'transfer'
@@ -146,8 +146,8 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
       });
 
       // Instantly trigger live updates of local reactive state registers
-      useWalletStore.getState().refreshWallets();
-      useTransactionStore.getState().fetchTransactions();
+      await useWalletStore.getState().refreshWallets();
+      await useTransactionStore.getState().fetchTransactions();
 
       return true;
     } catch (err: any) {

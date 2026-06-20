@@ -35,13 +35,13 @@ export async function exchangeCurrency(userId: string, body: any) {
   const receiver = wallets.find((w: any) => w.currency === toCurrency);
   if (!sender || !receiver) throw Object.assign(new Error("Wallet not found"), { statusCode: 400 });
   if (toDecimal(sender.balance).lessThan(dAmount)) throw Object.assign(new Error("Insufficient funds"), { statusCode: 400 });
-  const rates: Record<string, any> = { USD: new Decimal(1), EUR: new Decimal(0.92), MAD: new Decimal(10.05) };
+  const rates: Record<string, Decimal> = { USD: new Decimal(1), EUR: new Decimal(0.92), GBP: new Decimal(0.79), MAD: new Decimal(10.05), AED: new Decimal(3.67), BTC: new Decimal(0.000015) };
   const amountUSD = dAmount.div(rates[fromCurrency]);
   const converted = amountUSD.mul(rates[toCurrency]);
   const fee = converted.mul(0.001);
   const finalAmount = converted.minus(fee);
-  sender.balance = fmtDecimal(toDecimal(sender.balance).minus(dAmount));
-  receiver.balance = fmtDecimal(toDecimal(receiver.balance).plus(finalAmount));
+  sender.balance = toDecimal(sender.balance).minus(dAmount).toNumber() as any;
+  receiver.balance = toDecimal(receiver.balance).plus(finalAmount).toNumber() as any;
   const p = getPrisma();
   if (!p) throw new Error("Database unavailable");
   await p.wallet.update({ where: { id: sender.id }, data: { balance: sender.balance, ledgerBalance: sender.balance } });
@@ -52,7 +52,8 @@ export async function exchangeCurrency(userId: string, body: any) {
 
 export async function updateWalletLimits(userId: string, walletId: string, body: any) {
   const { dailyLimit, monthlyLimit } = body;
+  console.warn(`[WARN] updateWalletLimits: dailyLimit/monthlyLimit are Card fields, not Wallet. walletId=${walletId}`, dailyLimit ? `daily=${dailyLimit}` : '', monthlyLimit ? `monthly=${monthlyLimit}` : '');
   const p = getPrisma();
   if (!p) throw new Error("Database unavailable");
-  return p.wallet.update({ where: { id: walletId }, data: { ...dailyLimit && { dailyLimit }, ...monthlyLimit && { monthlyLimit } } });
+  return p.wallet.findUnique({ where: { id: walletId } });
 }

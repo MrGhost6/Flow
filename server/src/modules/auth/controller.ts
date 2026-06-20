@@ -49,7 +49,7 @@ export async function login(req: Request, res: Response) {
   try {
     const result = await authService.loginUser(value!);
     if ((result as any).requiresMfa) {
-      return res.json({ status: "success", ...result });
+      return sendSuccess(res, result);
     }
     return sendSuccess(res, { ...(result as any).tokens, user: (result as any).user });
   } catch (e: any) {

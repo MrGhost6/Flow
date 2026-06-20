@@ -8,30 +8,14 @@ import {
   Terminal,
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Lock,
-  Unlock,
   MessageSquare,
-  Eye,
   RefreshCw,
   Sliders,
   Search,
   UserCheck,
   Send,
-  Clock,
-  Bell,
-  Sparkles,
-  HelpCircle,
-  TrendingDown,
-  Info,
-  Cpu,
-  Database,
-  HardDrive,
-  GitPullRequest,
-  Cloud,
-  Server,
-  Play,
-  Undo
+  Bell
 } from 'lucide-react';
 import {
   useAdminStore,
@@ -44,6 +28,7 @@ import {
   AdminRole,
   AdminUserDetail
 } from '../stores/adminStore';
+import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   AreaChart,
@@ -194,12 +179,12 @@ export default function AdminPanel() {
   };
 
   const handleGlobalLockdownTrigger = async () => {
-    if (confirm('CRITICAL ACTION: Trigger worldwide regulatory lockdown? This freezes all in-memory live ledgers and isolates payment routing pathways immediately.')) {
+    if (window.confirm('CRITICAL ACTION: Trigger worldwide regulatory lockdown? This freezes all in-memory live ledgers and isolates payment routing pathways immediately.')) {
       const ok = await triggerSystemWideFreeze();
       if (ok) {
         setLockdownTriggered(true);
-        alert('WORLDWIDE FINTECH LOCKDOWN ARMED. ALL ACCOUNTS SUSPENDED FROM RUNNING TRANSACTIONS.');
-        refreshAllAdminWorkspaces();
+        toast.error('WORLDWIDE FINTECH LOCKDOWN ARMED. ALL ACCOUNTS SUSPENDED FROM RUNNING TRANSACTIONS.');
+        await refreshAllAdminWorkspaces();
       }
     }
   };
@@ -210,10 +195,10 @@ export default function AdminPanel() {
     if (ok) {
       setKycRemarks('');
       selectSubmission(null);
-      fetchDashboard();
-      fetchUsers();
+      await fetchDashboard();
+      await fetchUsers();
     } else {
-      alert('Error recording regulatory decision.');
+      toast.error('Error recording regulatory decision.');
     }
   };
 
@@ -223,8 +208,8 @@ export default function AdminPanel() {
     if (ok) {
       setAgentText('');
       // Refresh local view
-      fetchTicketDetail(selectedTicket.id);
-      fetchTickets();
+      await fetchTicketDetail(selectedTicket.id);
+      await fetchTickets();
     }
   };
 
@@ -232,10 +217,10 @@ export default function AdminPanel() {
     const ok = await freezeUser(userId);
     if (ok) {
       if (selectedUser?.id === userId) {
-        fetchUserDetail(userId);
+        await fetchUserDetail(userId);
       }
-      fetchUsers();
-      fetchDashboard();
+      await fetchUsers();
+      await fetchDashboard();
     }
   };
 
@@ -243,9 +228,9 @@ export default function AdminPanel() {
     const ok = await restrictUser(userId);
     if (ok) {
       if (selectedUser?.id === userId) {
-        fetchUserDetail(userId);
+        await fetchUserDetail(userId);
       }
-      fetchUsers();
+      await fetchUsers();
     }
   };
 
@@ -282,7 +267,7 @@ export default function AdminPanel() {
             >
               <Bell className="w-4 h-4" />
               {notifications.some(n => !n.read) && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-[#0C121E] rounded-full animate-ping" />
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-[#0C121E] rounded-full animate-ping" aria-hidden="true" />
               )}
             </button>
 
@@ -421,7 +406,7 @@ export default function AdminPanel() {
         >
           <AlertTriangle className="w-3.5 h-3.5 inline mr-1.5 align-middle" />
           Fraud Desk
-          {events.some(e => !e.resolved) && (
+          {events.some(e => e.status !== 'RESOLVED') && (
             <span className="ml-1 px-1.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 text-[8px] font-mono border border-rose-500/20">ALERT</span>
           )}
         </button>
@@ -484,7 +469,7 @@ export default function AdminPanel() {
               {/* BENTO STAT GRIDS */}
               <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
                 
-                <div className="col-span-12 lg:col-span-2 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                <div className="col-span-12 lg:col-span-2 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
                   <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">Secured Volume Inflow</span>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-white">${metrics?.totalVolumeUSD.toLocaleString() || '185,420'}</span>
@@ -495,7 +480,7 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
-                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-4.5 flex flex-col justify-between">
+                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
                   <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">Client Users</span>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-white">{metrics?.activeUsers || '4'}</span>
@@ -503,7 +488,7 @@ export default function AdminPanel() {
                   <div className="text-[9px] text-gray-400 font-mono mt-3">Active live ledgers</div>
                 </div>
 
-                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-4.5 flex flex-col justify-between">
+                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
                   <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">Compliance Ratio</span>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-[#00E0C7]">{metrics?.complianceRatio || '96.4'}%</span>
@@ -511,18 +496,18 @@ export default function AdminPanel() {
                   <div className="text-[9px] text-teal-400 font-mono mt-3">Nominal Health</div>
                 </div>
 
-                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-4.5 flex flex-col justify-between border-rose-500/10">
+                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-5 flex flex-col justify-between border-rose-500/10">
                   <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider">Open Fraud Alerts</span>
                   <div className="mt-3 flex items-baseline gap-1.5">
                     <span className={`text-xl sm:text-2xl font-bold font-mono ${metrics && metrics.openFraudAlerts > 0 ? 'text-rose-400' : 'text-white'}`}>
                       {metrics?.openFraudAlerts ?? '2'}
                     </span>
-                    {metrics && metrics.openFraudAlerts > 0 && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping align-middle" />}
+                    {metrics && metrics.openFraudAlerts > 0 && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping align-middle" aria-label="Active fraud alerts" />}
                   </div>
                   <div className="text-[9px] text-gray-500 font-mono mt-3">Requires Risk Action</div>
                 </div>
 
-                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-4.5 flex flex-col justify-between">
+                <div className="col-span-1 bg-[#0C121E]/60 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
                   <span className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-wider text-amber-300">Awaiting KYC</span>
                   <div className="mt-3">
                     <span className="text-xl sm:text-2xl font-bold font-mono text-amber-300">{metrics?.pendingKYC ?? '1'}</span>
@@ -645,7 +630,7 @@ export default function AdminPanel() {
                         <span className={`w-2 h-2 rounded-full ${
                           log.severity === 'CRITICAL' ? 'bg-rose-500' :
                           log.severity === 'WARNING' ? 'bg-amber-500' : 'bg-teal-400'
-                        }`} />
+                        }`} aria-label={log.severity} />
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-mono font-bold text-gray-200">{log.action.replace(/_/g, " ")}</span>
@@ -700,7 +685,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono text-[10.5px]">
+                    <table className="w-full text-left font-mono text-[10.5px]" aria-label="Client accounts table">
                       <thead className="bg-[#0C121E]/50 border-b border-white/5 text-gray-400 tracking-wider">
                         <tr>
                           <th className="p-4 font-bold text-gray-400">CLIENT USER</th>
@@ -810,9 +795,6 @@ export default function AdminPanel() {
                           <button
                             onClick={async () => {
                               const ok = await setUserStatus(selectedUser.id, 'active');
-                              if (ok) {
-                                setUserStatus(selectedUser.id, 'active');
-                              }
                             }}
                             className="w-full py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 rounded-xl text-[9px] font-mono font-bold uppercase transition-all"
                           >
@@ -833,7 +815,7 @@ export default function AdminPanel() {
                                 const roleVal = e.target.value ? e.target.value : null;
                                 const ok = await assignAdminRole(selectedUser.id, roleVal);
                                 if (ok) {
-                                  alert(`Staff privileges updated successfully on user ${selectedUser.name}`);
+                                  toast.success(`Staff privileges updated successfully on user ${selectedUser.name}`);
                                 }
                               }}
                               className="bg-transparent border-none text-[9px] font-mono text-white focus:outline-none focus:ring-0 cursor-pointer uppercase w-full font-bold"
@@ -991,7 +973,7 @@ export default function AdminPanel() {
                       </div>
 
                       {/* OFFICER EVALUATION FIELD */}
-                      <div className="bg-[#080D14] p-4.5 rounded-2xl border border-white/5 text-left space-y-3">
+                      <div className="bg-[#080D14] p-5 rounded-2xl border border-white/5 text-left space-y-3">
                         <span className="text-[8px] font-mono text-gray-400 uppercase block">Compliance Remarks (Persisted in immutable audit log)</span>
                         <textarea
                           value={kycRemarks}
@@ -1068,7 +1050,7 @@ export default function AdminPanel() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left font-mono text-[10.5px]">
+                  <table className="w-full text-left font-mono text-[10.5px]" aria-label="Transit logs table">
                     <thead className="bg-[#0C121E]/50 border-b border-white/5 text-gray-400 uppercase tracking-widest text-[9.5px]">
                       <tr>
                         <th className="p-4">REFERENCE ID</th>
@@ -1112,7 +1094,7 @@ export default function AdminPanel() {
                                   onClick={async () => {
                                     const reasonVal = prompt('Enter flag audit remarks:');
                                     if (reasonVal) {
-                                      alert('Flag record successfully saved in operational repository.');
+                                      toast.success('Flag record successfully saved in operational repository.');
                                     }
                                   }}
                                   className="px-2 py-0.5 bg-white/5 hover:bg-rose-500/20 text-gray-400 hover:text-rose-300 border border-white/5 hover:border-rose-500/25 rounded font-bold uppercase text-[8px] transition-all"
@@ -1163,15 +1145,15 @@ export default function AdminPanel() {
                         <div className="flex justify-between items-start gap-3">
                           <div className="flex items-center gap-2">
                             <span className={`w-2.5 h-2.5 rounded-full ${
-                              ev.riskLevel === 'critical' ? 'bg-rose-500 animate-ping' :
-                              ev.riskLevel === 'high' ? 'bg-rose-400' : 'bg-amber-400'
-                            }`} />
+                              ev.riskLevel === 'CRITICAL' ? 'bg-rose-500 animate-ping' :
+                              ev.riskLevel === 'HIGH' ? 'bg-rose-400' : 'bg-amber-400'
+                            }`} aria-label={`Risk level: ${ev.riskLevel}`} />
                             <span className="text-[10.5px] font-bold text-white uppercase tracking-wider font-mono">TYPE: {ev.eventType.replace(/_/g, ' ')}</span>
                           </div>
                           <span className={`text-[8.5px] font-mono px-1.5 py-0.5 rounded font-bold ${
-                            ev.resolved ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'
+                            ev.status === 'RESOLVED' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'
                           }`}>
-                            {ev.resolved ? 'RESOLVED' : 'OPEN COMPLIANCE WARNING'}
+                            {ev.status === 'RESOLVED' ? 'RESOLVED' : 'OPEN COMPLIANCE WARNING'}
                           </span>
                         </div>
                         <p className="text-[10px] text-gray-300 font-mono mt-2 leading-relaxed">{ev.description}</p>
@@ -1212,7 +1194,7 @@ export default function AdminPanel() {
                         
                         {currentRole === 'super_admin' || currentRole === 'compliance_admin' || currentRole === 'risk_agent' ? (
                           <div className="flex flex-col gap-2">
-                            {selectedEvent.resolved ? (
+                            {selectedEvent.status === 'RESOLVED' ? (
                               <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center text-emerald-300 text-xs font-bold uppercase">
                                 ✓ THIS EVENT HAS BEEN RESOLVED
                               </div>
@@ -1222,8 +1204,8 @@ export default function AdminPanel() {
                                   onClick={async () => {
                                     const ok = await resolveEvent(selectedEvent.id);
                                     if (ok) {
-                                      alert('Fraud event resolved. Client profile risk score adjusted downwards.');
-                                      fetchDashboard();
+                                      toast.success('Fraud event resolved. Client profile risk score adjusted downwards.');
+                                      await fetchDashboard();
                                     }
                                   }}
                                   className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-[10px] font-bold uppercase font-mono transition-all"
@@ -1235,9 +1217,9 @@ export default function AdminPanel() {
                                   onClick={async () => {
                                     const ok = await escalateEvent(selectedEvent.id);
                                     if (ok) {
-                                      alert('FRAUD ALERT ESCALATED to level 5 super-admin. Client account status restricted.');
-                                      fetchDashboard();
-                                      fetchUsers();
+                                      toast.error('FRAUD ALERT ESCALATED to level 5 super-admin. Client account status restricted.');
+                                      await fetchDashboard();
+                                      await fetchUsers();
                                     }
                                   }}
                                   className="w-full py-2.5 bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/25 text-rose-300 rounded-xl text-[10px] font-bold uppercase font-mono transition-all"
@@ -1299,8 +1281,8 @@ export default function AdminPanel() {
                         <div className="flex justify-between items-start gap-2">
                           <span className="text-[11.5px] font-bold text-white block truncate">{ticket.subject}</span>
                           <span className={`text-[8px] font-mono uppercase px-1.5 py-0.5 rounded ${
-                            ticket.priority === 'critical' ? 'bg-rose-500/10 text-rose-300' :
-                            ticket.priority === 'high' ? 'bg-rose-400/10 text-rose-300' : 'bg-gray-500/10 text-gray-300'
+                            ticket.priority === 'CRITICAL' ? 'bg-rose-500/10 text-rose-300' :
+                            ticket.priority === 'HIGH' ? 'bg-rose-400/10 text-rose-300' : 'bg-gray-500/10 text-gray-300'
                           }`}>
                             {ticket.priority}
                           </span>
@@ -1308,7 +1290,7 @@ export default function AdminPanel() {
                         <span className="text-[9px] text-[#00E0C7] font-bold block mt-1.5 uppercase font-mono">{ticket.userName} · ID: {ticket.userId}</span>
                         <div className="flex justify-between items-center text-[8.5px] text-gray-500 font-mono mt-1.5">
                           <span>Category Group: {ticket.category}</span>
-                          <span className={`uppercase font-bold ${ticket.status === 'open' ? 'text-teal-400' : 'text-gray-400'}`}>{ticket.status}</span>
+                          <span className={`uppercase font-bold ${ticket.status === 'OPEN' ? 'text-teal-400' : 'text-gray-400'}`}>{ticket.status}</span>
                         </div>
                       </div>
                     ))}
@@ -1316,7 +1298,7 @@ export default function AdminPanel() {
                 </div>
 
                 {/* Submissions interactive response workspace */}
-                <div className="lg:col-span-12 lg:col-span-7 bg-[#0C121E]/60 border border-white/5 rounded-3xl p-6 shadow-2xl min-h-[450px] flex flex-col justify-between">
+                <div className="lg:col-span-7 bg-[#0C121E]/60 border border-white/5 rounded-3xl p-6 shadow-2xl min-h-[450px] flex flex-col justify-between">
                   {selectedTicket ? (
                     <div className="flex-1 flex flex-col justify-between space-y-5 text-left animate-fade-in font-mono">
                       
@@ -1334,7 +1316,7 @@ export default function AdminPanel() {
                             value={selectedTicket.priority}
                             onChange={async (e) => {
                               await updateTicketAttributes(selectedTicket.id, { priority: e.target.value });
-                              alert('Ticket priority updated.');
+                              toast.success('Ticket priority updated.');
                             }}
                             className="bg-white/5 border border-white/10 rounded-lg text-[8.5px] font-mono uppercase text-gray-300 focus:outline-none focus:ring-0 p-1 font-bold"
                           >
@@ -1348,7 +1330,7 @@ export default function AdminPanel() {
                             value={selectedTicket.status}
                             onChange={async (e) => {
                               await updateTicketAttributes(selectedTicket.id, { status: e.target.value });
-                              alert('Ticket status updated.');
+                              toast.success('Ticket status updated.');
                             }}
                             className="bg-white/5 border border-white/10 rounded-lg text-[8.5px] font-mono uppercase text-gray-300 focus:outline-none focus:ring-0 p-1 font-bold"
                           >
@@ -1596,11 +1578,7 @@ export default function AdminPanel() {
                         <XAxis dataKey="currency" stroke="rgba(255,255,255,0.4)" fontSize={9} fontStyle="italic" />
                         <YAxis stroke="rgba(255,255,255,0.4)" fontSize={9} fontStyle="italic" />
                         <Tooltip contentStyle={{ backgroundColor: '#0C121E', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '9px' }} />
-                        <Bar dataKey="balance" name="Aggregate Balances" fill="#1E90FF" radius={[4, 4, 0, 0]}>
-                          <Cell fill="#00dfc6" />
-                          <Cell fill="#1E90FF" />
-                          <Cell fill="#7B5CFF" />
-                        </Bar>
+                        <Bar dataKey="balance" name="Aggregate Balances" fill="#1E90FF" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

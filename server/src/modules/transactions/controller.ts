@@ -37,14 +37,14 @@ export async function filter(req: Request, res: Response) {
 
 export async function getById(req: Request, res: Response) {
   try {
-    const tx = await txService.getById(req.params.id);
+    const tx = await txService.getById(req.params.id, req.userId!);
     return res.json(tx);
   } catch (e: any) { return sendError(res, e.message, 404); }
 }
 
 export async function getReceipt(req: Request, res: Response) {
   try {
-    const receipt = await txService.getReceipt(req.params.id);
+    const receipt = await txService.getReceipt(req.params.id, req.userId!);
     return res.json(receipt);
   } catch (e: any) { return sendError(res, e.message, 404); }
 }

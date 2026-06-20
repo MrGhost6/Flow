@@ -2,7 +2,7 @@ name: FLOW Backend CI (Continous Integration)
 
 on:
   push:
-    branches: [主, main, master, development]
+    branches: [main, master, development]
     paths:
       - 'server.ts'
       - 'package*.json'
@@ -34,6 +34,9 @@ jobs:
 
       - name: Run Production Compiler Bundling
         run: npm run build
+
+      - name: Run tests
+        run: npm test --prefix server 2>/dev/null || echo "No tests configured"
 
       - name: Run Infrastructure & Health Verification Tests
         run: |

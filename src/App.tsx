@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, FormEvent } from 'react';
+import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Wallet as WalletIcon,
@@ -54,12 +55,13 @@ import AnalyticsHub from './components/AnalyticsHub';
 import SupervisorHubPanel from './components/SupervisorHubPanel';
 import SecurityCenter from './components/SecurityCenter';
 import AdminPanel from './components/AdminPanel';
+import SettingsPage from './components/SettingsPage';
 import { UserProfile, Wallet, Transaction, Invoice, FlowCard, AIMessage } from './types';
 import { apiFetch } from './utils/api';
 
 export default function App() {
   // Navigation tabs
-  const [activeTab, setActiveTab ] = useState<'home' | 'analytics' | 'cards' | 'pay' | 'hub' | 'security' | 'admin'>('home');
+  const [activeTab, setActiveTab ] = useState<'home' | 'analytics' | 'cards' | 'pay' | 'hub' | 'security' | 'admin' | 'settings'>('home');
   const [financeSegment, setFinanceSegment] = useState<'personal' | 'business'>('personal');
 
   // Multiwc persistence
@@ -327,7 +329,7 @@ export default function App() {
         setNotifications([trackingAlert, ...notifications]);
         return;
       } else {
-        alert(data.message || 'Transfer validation failed.');
+        toast.error(data.message || 'Transfer validation failed.');
         return;
       }
     } catch (err) {
@@ -345,7 +347,7 @@ export default function App() {
     });
 
     if (!walletFound) {
-      alert(`Insufficient funds in ${sendCurrency} wallet.`);
+      toast.error(`Insufficient funds in ${sendCurrency} wallet.`);
       return;
     }
 
@@ -357,7 +359,7 @@ export default function App() {
       description: sendRecipient || 'Global Instant Transfer',
       category: sendCategory,
       amount: amountNum,
-      type: 'expense',
+      type: 'EXPENSE',
       currency: sendCurrency,
     };
 
@@ -407,7 +409,7 @@ export default function App() {
         setNotifications([instantAlert, ...notifications]);
         return;
       } else {
-        alert(data.message || 'Exchange validation failed.');
+        toast.error(data.message || 'Exchange validation failed.');
         return;
       }
     } catch (err) {
@@ -432,7 +434,7 @@ export default function App() {
     });
 
     if (!sourceOk) {
-      alert(`Insufficient balance in ${exFrom} wallet to exchange.`);
+      toast.error(`Insufficient balance in ${exFrom} wallet to exchange.`);
       return;
     }
 
@@ -457,7 +459,7 @@ export default function App() {
       description: `Exchanged to ${exTo}`,
       category: 'Exchange',
       amount: amt,
-      type: 'expense',
+      type: 'EXPENSE',
       currency: exFrom,
     };
 
@@ -467,7 +469,7 @@ export default function App() {
       description: `Exchanged from ${exFrom}`,
       category: 'Exchange',
       amount: Number(convertedAmt.toFixed(2)),
-      type: 'income',
+      type: 'INCOME',
       currency: exTo,
     };
 
@@ -671,7 +673,7 @@ export default function App() {
                 : 'text-gray-400 hover:bg-white/[0.02] hover:text-white'
             }`}
           >
-            <Compass className="w-4.5 h-4.5" />
+            <Compass className="w-5 h-5" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Hub</span>
           </button>
 
@@ -683,7 +685,7 @@ export default function App() {
                 : 'text-gray-400 hover:bg-white/[0.02] hover:text-white'
             }`}
           >
-            <svg className="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011-1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" style={{ fill: 'currentColor' }} />
             </svg>
             <span className="text-[11px] font-bold uppercase tracking-wider">Home</span>
@@ -697,7 +699,7 @@ export default function App() {
                 : 'text-gray-400 hover:bg-white/[0.02] hover:text-white'
             }`}
           >
-            <TrendingUp className="w-4.5 h-4.5" />
+            <TrendingUp className="w-5 h-5" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Analytics</span>
           </button>
 
@@ -709,7 +711,7 @@ export default function App() {
                 : 'text-gray-400 hover:bg-white/[0.02] hover:text-white'
             }`}
           >
-            <FileText className="w-4.5 h-4.5" />
+            <FileText className="w-5 h-5" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Payments</span>
           </button>
 
@@ -721,7 +723,7 @@ export default function App() {
                 : 'text-gray-400 hover:bg-white/[0.02] hover:text-white'
             }`}
           >
-            <CardIcon className="w-4.5 h-4.5" />
+            <CardIcon className="w-5 h-5" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Cards</span>
           </button>
 
@@ -734,7 +736,7 @@ export default function App() {
             }`}
             id="nav-security"
           >
-            <Shield className="w-4.5 h-4.5 text-rose-400" />
+            <Shield className="w-5 h-5 text-rose-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-rose-300">Security</span>
           </button>
 
@@ -747,7 +749,7 @@ export default function App() {
             }`}
             id="nav-admin"
           >
-            <Sliders className="w-4.5 h-4.5 text-red-400" />
+            <Sliders className="w-5 h-5 text-red-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-red-300">Operations</span>
           </button>
         </nav>
@@ -755,7 +757,7 @@ export default function App() {
         <div className="px-4 mt-auto space-y-4">
           <button
             onClick={() => setIsSendOpen(true)}
-            className="w-full py-3 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-98 transition-all flex justify-center items-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.25)]"
+            className="w-full py-3 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all flex justify-center items-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.25)]"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Funds</span>
@@ -763,8 +765,8 @@ export default function App() {
 
           <div className="space-y-1">
             <button
-              onClick={() => setActiveTab('hub')}
-              className="w-full flex items-center gap-3.5 text-gray-400 px-4 py-2.5 hover:text-white transition-colors text-left font-sans text-xs"
+              onClick={() => setActiveTab('settings')}
+              className={`w-full flex items-center gap-3.5 px-4 py-2.5 transition-colors text-left font-sans text-xs ${activeTab === 'settings' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
             >
               <Settings className="w-4 h-4" />
               <span className="text-[10px] font-mono uppercase tracking-wider">Settings</span>
@@ -1016,7 +1018,7 @@ export default function App() {
             <div className="xl:col-span-8 flex flex-col gap-6 w-full">
               
               {/* Hero / Total Balance Card */}
-              <section className="bg-[#131722]/80 backdrop-blur-2xl ring-1 ring-white/5 shadow-2xl rounded-[32px] p-6 sm:p-8 relative overflow-hidden bg-gradient-to-br from-[#1E90FF]/10 to-[#7B5CFF]/10 border border-white/5">
+              <section className="bg-[#182029]/60 backdrop-blur-2xl ring-1 ring-white/5 shadow-2xl rounded-3xl p-6 sm:p-8 relative overflow-hidden bg-gradient-to-br from-[#1E90FF]/10 to-[#7B5CFF]/10 border border-[#8a919f]/10 hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all">
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#1E90FF]/25 rounded-full blur-[80px] pointer-events-none"></div>
                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#7B5CFF]/15 rounded-full blur-[80px] pointer-events-none"></div>
                 
@@ -1036,7 +1038,7 @@ export default function App() {
                   <div className="flex gap-4">
                     <button
                       onClick={() => setIsExchangeOpen(true)}
-                      className="bg-white/5 hover:bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl text-white text-xs font-bold font-mono tracking-wider uppercase border border-white/10 transition-all flex items-center gap-2 active:scale-98"
+                      className="bg-white/5 hover:bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl text-white text-xs font-bold font-mono tracking-wider uppercase border border-white/10 transition-all flex items-center gap-2 active:scale-95"
                     >
                       <RefreshCw className="w-4 h-4 text-[#00E0C7]" />
                       <span>Exchange</span>
@@ -1050,7 +1052,7 @@ export default function App() {
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 font-mono mb-4">Assets</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* MAD Card */}
-                  <div className="bg-[#131722]/80 backdrop-blur-2xl rounded-[24px] border border-white/5 p-6 relative overflow-hidden group hover:scale-[1.02] hover:border-white/10 transition-all duration-300 shadow-xl">
+                  <div className="bg-[#182029]/60 backdrop-blur-2xl rounded-2xl border border-[#8a919f]/10 p-6 relative overflow-hidden group hover:scale-[1.02] hover:border-white/10 transition-all duration-300 shadow-xl">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#00E0C7]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex justify-between items-center mb-6">
                       <span className="px-2.5 py-1 bg-[#1E90FF]/15 text-[#1E90FF] border border-[#1E90FF]/10 text-[9px] font-mono rounded-full font-bold uppercase tracking-wider">
@@ -1065,7 +1067,7 @@ export default function App() {
                   </div>
 
                   {/* EUR Card */}
-                  <div className="bg-[#131722]/80 backdrop-blur-2xl rounded-[24px] border border-white/5 p-6 relative group overflow-hidden hover:scale-[1.02] hover:border-white/10 transition-all duration-300 shadow-xl">
+                  <div className="bg-[#182029]/60 backdrop-blur-2xl rounded-2xl border border-[#8a919f]/10 p-6 relative group overflow-hidden hover:scale-[1.02] hover:border-white/10 transition-all duration-300 shadow-xl">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#7B5CFF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex justify-between items-center mb-6">
                       <span className="px-2.5 py-1 bg-[#7B5CFF]/15 text-[#7B5CFF] border border-[#7B5CFF]/10 text-[9px] font-mono rounded-full font-bold uppercase tracking-wider">
@@ -1082,7 +1084,7 @@ export default function App() {
                   </div>
 
                   {/* USD Card */}
-                  <div className="bg-[#131722]/80 backdrop-blur-2xl rounded-[24px] border border-white/5 p-6 relative group overflow-hidden hover:scale-[1.02] hover:border-white/10 transition-all duration-300 shadow-xl">
+                  <div className="bg-[#182029]/60 backdrop-blur-2xl rounded-2xl border border-[#8a919f]/10 p-6 relative group overflow-hidden hover:scale-[1.02] hover:border-white/10 transition-all duration-300 shadow-xl">
                     <div className="absolute inset-0 bg-gradient-to-br from-[#1E90FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex justify-between items-center mb-6">
                       <span className="px-2.5 py-1 bg-[#1E90FF]/15 text-white border border-[#1E90FF]/10 text-[9px] font-mono rounded-full font-bold uppercase tracking-wider">
@@ -1101,7 +1103,7 @@ export default function App() {
               </section>
 
               {/* Chart Section */}
-              <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 min-h-[320px] flex flex-col justify-between shadow-2xl relative">
+              <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 min-h-[320px] flex flex-col justify-between shadow-2xl relative hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 font-mono">Flow History</h3>
@@ -1147,7 +1149,7 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setIsSendOpen(true)}
-                  className="bg-[#131722]/80 backdrop-blur-2xl p-6 rounded-[24px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-98 transition-all group shadow-xl"
+                  className="bg-[#182029]/60 backdrop-blur-2xl p-6 rounded-2xl border border-[#8a919f]/10 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-95 transition-all group shadow-xl"
                   id="bento-action-send"
                 >
                   <div className="w-12 h-12 rounded-full bg-[#1E90FF]/10 text-[#1E90FF] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#1E90FF]/25 swap_icons transition-all shadow-[0_0_15px_rgba(30,144,255,0.1)]">
@@ -1166,9 +1168,9 @@ export default function App() {
                       read: false,
                     };
                     setNotifications([alertState, ...notifications]);
-                    alert("Receive Account: Flow clearing bank standard IBAN has been loaded to clipboard.");
+                    toast.success("Receive Account: Flow clearing bank standard IBAN has been loaded to clipboard.");
                   }}
-                  className="bg-[#131722]/80 backdrop-blur-2xl p-6 rounded-[24px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-98 transition-all group shadow-xl"
+                  className="bg-[#182029]/60 backdrop-blur-2xl p-6 rounded-2xl border border-[#8a919f]/10 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-95 transition-all group shadow-xl"
                   id="bento-action-receive"
                 >
                   <div className="w-12 h-12 rounded-full bg-[#00E0C7]/10 text-[#00E0C7] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#00E0C7]/25 transition-all shadow-[0_0_15px_rgba(0,224,199,0.1)]">
@@ -1179,7 +1181,7 @@ export default function App() {
 
                 <button
                   onClick={() => setIsExchangeOpen(true)}
-                  className="bg-[#131722]/80 backdrop-blur-2xl p-6 rounded-[24px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-98 transition-all group shadow-xl"
+                  className="bg-[#182029]/60 backdrop-blur-2xl p-6 rounded-2xl border border-[#8a919f]/10 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-95 transition-all group shadow-xl"
                   id="bento-action-swap"
                 >
                   <div className="w-12 h-12 rounded-full bg-[#7B5CFF]/10 text-[#7B5CFF] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#7B5CFF]/25 transition-all shadow-[0_0_15px_rgba(123,92,255,0.1)]">
@@ -1199,10 +1201,10 @@ export default function App() {
                         read: false,
                       };
                       setNotifications([instantAlert, ...notifications]);
-                      alert(`Billing invoice link created for ${reqAmt} MAD! Link sent to client.`);
+                      toast.success(`Billing invoice link created for ${reqAmt} MAD! Link sent to client.`);
                     }
                   }}
-                  className="bg-[#131722]/80 backdrop-blur-2xl p-6 rounded-[24px] border border-white/5 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-98 transition-all group shadow-xl"
+                  className="bg-[#182029]/60 backdrop-blur-2xl p-6 rounded-2xl border border-[#8a919f]/10 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.04] hover:scale-[1.02] hover:border-white/10 active:scale-95 transition-all group shadow-xl"
                   id="bento-action-request"
                 >
                   <div className="w-12 h-12 rounded-full bg-white/5 text-white flex items-center justify-center group-hover:scale-110 group-hover:bg-white/10 transition-all">
@@ -1213,7 +1215,7 @@ export default function App() {
               </div>
 
               {/* FLOW INTELLIGENCE / AI INSIGHT */}
-              <div className="bg-[#131722]/80 backdrop-blur-2xl rounded-[24px] border border-white/5 p-6 relative overflow-hidden group hover:border-[#00E0C7]/20 transition-all duration-300 shadow-xl">
+              <div className="bg-[#182029]/60 backdrop-blur-2xl rounded-2xl border border-[#8a919f]/10 p-6 relative overflow-hidden group hover:border-[#00E0C7]/20 transition-all duration-300 shadow-xl">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#00E0C7]/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-[#00E0C7]/10 transition-all" />
                 <div className="flex items-start gap-4 relative z-10 animate-fade-in">
                   <div className="w-8 h-8 rounded-full bg-[#00E0C7]/15 text-[#00E0C7] flex items-center justify-center shrink-0">
@@ -1229,7 +1231,7 @@ export default function App() {
               </div>
 
               {/* RECENT TRANSACTIONS */}
-              <div className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 flex flex-col justify-between shadow-2xl relative">
+              <div className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 flex flex-col justify-between shadow-2xl relative hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all">
                 <div>
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 font-mono">Recent</h3>
@@ -1242,11 +1244,11 @@ export default function App() {
                     {transactions.slice(0, 3).map((tx) => (
                       <div key={tx.id} className="flex items-center gap-4 p-2.5 rounded-2xl hover:bg-white/[0.02] transition-colors cursor-pointer group">
                         <div className="w-11 h-11 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-white/5 group-hover:text-[#00E0C7] group-hover:border-white/15 transition-all text-gray-300">
-                          {tx.category === 'Exchange' && <RefreshCw className="w-4.5 h-4.5" />}
-                          {tx.category === 'Food & Drink' && <Coffee className="w-4.5 h-4.5" />}
-                          {tx.category === 'Income' && <TrendingUp className="w-4.5 h-4.5 text-[#00E0C7]" />}
-                          {tx.category === 'Travel' && <Plane className="w-4.5 h-4.5 text-[#7B5CFF]" />}
-                          {!['Exchange', 'Food & Drink', 'Income', 'Travel'].includes(tx.category) && <Zap className="w-4.5 h-4.5" />}
+                          {tx.category === 'Exchange' && <RefreshCw className="w-5 h-5" />}
+                          {tx.category === 'Food & Drink' && <Coffee className="w-5 h-5" />}
+                          {tx.category === 'Income' && <TrendingUp className="w-5 h-5 text-[#00E0C7]" />}
+                          {tx.category === 'Travel' && <Plane className="w-5 h-5 text-[#7B5CFF]" />}
+                          {!['Exchange', 'Food & Drink', 'Income', 'Travel'].includes(tx.category) && <Zap className="w-5 h-5" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-white truncate group-hover:text-[#00E0C7] transition-colors">{tx.description}</p>
@@ -1304,7 +1306,7 @@ export default function App() {
                     read: false,
                   };
                   setNotifications([alertState, ...notifications]);
-                  alert("Receive Account: Flow clearing bank standard IBAN has been loaded to clipboard.");
+                  toast.success("Receive Account: Flow clearing bank standard IBAN has been loaded to clipboard.");
                 }} 
                 className="flex flex-col items-center gap-2 group cursor-pointer bg-transparent border-none"
               >
@@ -1335,10 +1337,10 @@ export default function App() {
                       read: false,
                     };
                     setNotifications([instantAlert, ...notifications]);
-                    alert(`Billing invoice link created for ${reqAmt} MAD! Link sent to client.`);
-                  }
-                }} 
-                className="flex flex-col items-center gap-2 group cursor-pointer bg-transparent border-none"
+                      toast.success(`Billing invoice link created for ${reqAmt} MAD! Link sent to client.`);
+                    }
+                  }} 
+                  className="flex flex-col items-center gap-2 group cursor-pointer bg-transparent border-none"
               >
                 <div className="w-14 h-14 rounded-full glass-card flex items-center justify-center group-hover:scale-105 transition-all duration-300">
                   <QrCode className="w-5 h-5 text-gray-200" />
@@ -1423,11 +1425,11 @@ export default function App() {
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 border border-white/5 text-gray-300">
-                          {tx.category === 'Exchange' && <RefreshCw className="w-4.5 h-4.5" />}
-                          {tx.category === 'Dining' && <Coffee className="w-4.5 h-4.5" />}
-                          {tx.category === 'Income' && <TrendingUp className="w-4.5 h-4.5 text-[#00e0c7]" />}
-                          {tx.category === 'Travel' && <Plane className="w-4.5 h-4.5 text-[#7B5CFF]" />}
-                          {!['Exchange', 'Dining', 'Income', 'Travel'].includes(tx.category) && <Zap className="w-4.5 h-4.5" />}
+                          {tx.category === 'Exchange' && <RefreshCw className="w-5 h-5" />}
+                          {tx.category === 'Dining' && <Coffee className="w-5 h-5" />}
+                          {tx.category === 'Income' && <TrendingUp className="w-5 h-5 text-[#00e0c7]" />}
+                          {tx.category === 'Travel' && <Plane className="w-5 h-5 text-[#7B5CFF]" />}
+                          {!['Exchange', 'Dining', 'Income', 'Travel'].includes(tx.category) && <Zap className="w-5 h-5" />}
                         </div>
                         <div>
                           <p className="text-body-md font-body-md font-medium text-white select-all">{tx.description}</p>
@@ -1474,7 +1476,6 @@ export default function App() {
         {activeTab === 'pay' && (
           <div className="lg:col-span-12 animate-fade-in font-sans" id="pay-view-tab">
             <PaymentHub
-              onAddTransaction={(newTx) => setTransactions([newTx, ...transactions])}
               invoices={invoices}
               onAddInvoice={(newInv) => setInvoices([newInv, ...invoices])}
               notifications={notifications}
@@ -1497,12 +1498,19 @@ export default function App() {
           </div>
         )}
 
+        {/* TAB 4.9: SETTINGS PAGE */}
+        {activeTab === 'settings' && (
+          <div className="lg:col-span-12 animate-fade-in w-full font-sans" id="settings-view-tab">
+            <SettingsPage />
+          </div>
+        )}
+
         {/* TAB 5: CENTRAL HUB / OPTIONS (SETTINGS AND EXTRA FUNCTIONALITIES) */}
         {activeTab === 'hub' && (
-          <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in w-full pb-12 animate-fade-in" id="hub-view-tab">
+          <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in w-full pb-12" id="hub-view-tab">
             
             {/* HERO / PRIMARY WALLET (Col span 8 on lg) */}
-            <div className="lg:col-span-8 bg-[#131722]/80 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] shadow-2xl">
+            <div className="lg:col-span-8 bg-[#182029]/60 backdrop-blur-2xl border border-[#8a919f]/10 rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] shadow-2xl">
               <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#1E90FF]/15 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
               <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-[#7B5CFF]/10 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
               
@@ -1529,7 +1537,7 @@ export default function App() {
               <div className="flex gap-4 mt-8 relative z-10 w-full sm:w-auto">
                 <button
                   onClick={() => setIsSendOpen(true)}
-                  className="flex-1 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white px-6 py-3.5 rounded-2xl text-xs font-bold font-mono tracking-wider uppercase hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.25)] shrink-0 animate-fade-in"
+                  className="flex-1 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white px-6 py-3.5 rounded-2xl text-xs font-bold font-mono tracking-wider uppercase hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.25)] shrink-0 animate-fade-in"
                   id="btn-hub-add-funds"
                 >
                   <Plus className="w-4 h-4 shrink-0" />
@@ -1537,7 +1545,7 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => setIsSendOpen(true)}
-                  className="flex-1 bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/10 px-6 py-3.5 rounded-2xl text-xs font-bold font-mono tracking-wider uppercase hover:scale-[1.02] active:scale-98 transition-all flex items-center justify-center gap-2 shrink-0 animate-fade-in"
+                  className="flex-1 bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/10 px-6 py-3.5 rounded-2xl text-xs font-bold font-mono tracking-wider uppercase hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shrink-0 animate-fade-in"
                   id="btn-hub-transfer"
                 >
                   <Send className="w-4 h-4 shrink-0" />
@@ -1547,7 +1555,7 @@ export default function App() {
             </div>
 
             {/* VIRTUAL CARD PREVIEW (Col span 4 on lg) */}
-            <div className="lg:col-span-4 bg-[#131722]/80 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 flex flex-col justify-between bg-gradient-to-b from-[#141C25]/40 to-[#0c141d]/40 relative min-h-[300px] shadow-2xl">
+            <div className="lg:col-span-4 bg-[#182029]/60 backdrop-blur-2xl border border-[#8a919f]/10 rounded-3xl p-6 flex flex-col justify-between bg-gradient-to-b from-[#141C25]/40 to-[#0c141d]/40 relative min-h-[300px] shadow-2xl">
               <div className="flex justify-between items-center pb-4 border-b border-white/[0.02]">
                 <div className="text-xs font-bold uppercase tracking-wider font-mono text-gray-400">Flow Card</div>
                 <span className="w-2.5 h-2.5 rounded-full bg-[#00E0C7] animate-pulse" />
@@ -1604,7 +1612,7 @@ export default function App() {
             </div>
 
             {/* CURRENCIES ACTIVE ACCOUNTS (Col span 6 on lg) */}
-            <div className="lg:col-span-6 bg-[#131722]/80 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 shadow-2xl flex flex-col justify-between">
+            <div className="lg:col-span-6 bg-[#182029]/60 backdrop-blur-2xl border border-[#8a919f]/10 rounded-3xl p-6 shadow-2xl flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400 font-mono">Active Currency Accounts</h2>
@@ -1696,7 +1704,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm("Reset current flow active profile session to recalibrate?")) {
+                    if (window.confirm("Reset current flow active profile session to recalibrate?")) {
                       setProfile(null);
                     }
                   }}
@@ -1708,7 +1716,7 @@ export default function App() {
             </div>
 
             {/* QUICK EXCHANGE TOOL (Col span 6 on lg) */}
-            <div className="lg:col-span-6 bg-[#131722]/80 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 shadow-2xl relative flex flex-col justify-between">
+            <div className="lg:col-span-6 bg-[#182029]/60 backdrop-blur-2xl border border-[#8a919f]/10 rounded-3xl p-6 shadow-2xl relative flex flex-col justify-between">
               <form onSubmit={handleExchangeSubmit} className="space-y-4">
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400 font-mono">Quick Currency Exchange</h2>
@@ -1829,7 +1837,7 @@ export default function App() {
 
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-6 py-2.5 bg-[#00E0C7] hover:bg-[#00cfa7] text-black font-bold text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-semibold active:scale-98"
+                    className="w-full sm:w-auto px-6 py-2.5 bg-[#00E0C7] hover:bg-[#00cfa7] text-black font-bold text-xs font-mono tracking-widest uppercase rounded-xl transition-all font-semibold active:scale-95"
                     id="btn-trigger-exchange-direct"
                   >
                     Execute Conversion
@@ -1859,7 +1867,7 @@ export default function App() {
             }`}
             id="nav-home"
           >
-            <svg className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011-1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
             </svg>
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none">Home</span>
@@ -1880,7 +1888,7 @@ export default function App() {
             }`}
             id="nav-analytics"
           >
-            <TrendingUp className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300" />
+            <TrendingUp className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300" />
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none">Analytics</span>
             {activeTab === 'analytics' && (
               <motion.div
@@ -1899,7 +1907,7 @@ export default function App() {
             }`}
             id="nav-cards"
           >
-            <CardIcon className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300" />
+            <CardIcon className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300" />
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none">Cards</span>
             {activeTab === 'cards' && (
               <motion.div
@@ -1918,7 +1926,7 @@ export default function App() {
             }`}
             id="nav-pay"
           >
-            <FileText className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300" />
+            <FileText className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300" />
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none">Pay</span>
             {activeTab === 'pay' && (
               <motion.div
@@ -1937,7 +1945,7 @@ export default function App() {
             }`}
             id="nav-mobile-security"
           >
-            <Shield className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300" />
+            <Shield className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300" />
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none">Security</span>
             {activeTab === 'security' && (
               <motion.div
@@ -1956,7 +1964,7 @@ export default function App() {
             }`}
             id="nav-mobile-admin"
           >
-            <Sliders className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300 text-red-400" />
+            <Sliders className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300 text-red-400" />
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none text-red-300">Ops</span>
             {activeTab === 'admin' && (
               <motion.div
@@ -1975,7 +1983,7 @@ export default function App() {
             }`}
             id="nav-hub"
           >
-            <Compass className="w-5.5 h-5.5 sm:w-5 sm:h-5 transition-transform duration-300" />
+            <Compass className="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300" />
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider leading-none">Hub</span>
             {activeTab === 'hub' && (
               <motion.div
@@ -2013,7 +2021,7 @@ export default function App() {
 
               <form onSubmit={handleSendMoneySubmit} className="space-y-4 text-xs font-sans">
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase mb-1.5">Recipient Identity (IBAN or BIC)</label>
+                  <label htmlFor="send-recipient-input" className="text-gray-400 block font-mono uppercase mb-1.5">Recipient Identity (IBAN or BIC)</label>
                   <input
                     type="text"
                     required
@@ -2021,16 +2029,18 @@ export default function App() {
                     value={sendRecipient}
                     onChange={(e) => setSendRecipient(e.target.value)}
                     className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#1E90FF] text-white"
+                    id="send-recipient-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1.5">Billing Pool</label>
+                    <label htmlFor="send-currency-select" className="text-gray-400 block font-mono uppercase mb-1.5">Billing Pool</label>
                     <select
                       value={sendCurrency}
                       onChange={(e) => setSendCurrency(e.target.value)}
                       className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#1E90FF]"
+                      id="send-currency-select"
                     >
                       <option value="MAD">MAD (Dirham)</option>
                       <option value="EUR">EUR (€)</option>
@@ -2038,7 +2048,7 @@ export default function App() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1.5">Clearing size</label>
+                    <label htmlFor="send-amount-input" className="text-gray-400 block font-mono uppercase mb-1.5">Clearing size</label>
                     <input
                       type="number"
                       required
@@ -2046,16 +2056,18 @@ export default function App() {
                       value={sendAmount}
                       onChange={(e) => setSendAmount(e.target.value)}
                       className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none"
+                      id="send-amount-input"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase mb-1.5">Expense Category</label>
+                  <label htmlFor="send-category-select" className="text-gray-400 block font-mono uppercase mb-1.5">Expense Category</label>
                   <select
                     value={sendCategory}
                     onChange={(e) => setSendCategory(e.target.value as any)}
                     className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none"
+                    id="send-category-select"
                   >
                     <option value="Dining">Dining & Subsistence</option>
                     <option value="Software">Software Licensing & Dev SaaS</option>
@@ -2098,11 +2110,12 @@ export default function App() {
               <form onSubmit={handleExchangeSubmit} className="space-y-4 text-xs font-sans">
                 <div className="grid grid-cols-2 gap-3 items-center">
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1.5">Convert From</label>
+                    <label htmlFor="ex-from-select" className="text-gray-400 block font-mono uppercase mb-1.5">Convert From</label>
                     <select
                       value={exFrom}
                       onChange={(e) => setExFrom(e.target.value)}
                       className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#00E0C7]"
+                      id="ex-from-select"
                     >
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
@@ -2110,11 +2123,12 @@ export default function App() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1.5">Convert To</label>
+                    <label htmlFor="ex-to-select" className="text-gray-400 block font-mono uppercase mb-1.5">Convert To</label>
                     <select
                       value={exTo}
                       onChange={(e) => setExTo(e.target.value)}
                       className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#00E0C7]"
+                      id="ex-to-select"
                     >
                       <option value="MAD">MAD (Dirham)</option>
                       <option value="USD">USD ($)</option>
@@ -2124,7 +2138,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase mb-1.5">Amount to convert</label>
+                  <label htmlFor="ex-amount-input" className="text-gray-400 block font-mono uppercase mb-1.5">Amount to convert</label>
                   <input
                     type="number"
                     required
@@ -2132,6 +2146,7 @@ export default function App() {
                     value={exAmount}
                     onChange={(e) => setExAmount(e.target.value)}
                     className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none text-white font-mono"
+                    id="ex-amount-input"
                   />
                 </div>
 
@@ -2175,7 +2190,7 @@ export default function App() {
 
               <form onSubmit={handleCreateInvoice} className="space-y-4 text-xs font-sans">
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase mb-1.5">Recipient Legal entity</label>
+                  <label htmlFor="invoice-client-input" className="text-gray-400 block font-mono uppercase mb-1.5">Recipient Legal entity</label>
                   <input
                     type="text"
                     required
@@ -2183,27 +2198,30 @@ export default function App() {
                     value={invoiceClient}
                     onChange={(e) => setInvoiceClient(e.target.value)}
                     className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#7b5cff] text-white"
+                    id="invoice-client-input"
                   />
                 </div>
 
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase mb-1.5">Recipient Financial Email</label>
+                  <label htmlFor="invoice-email-input" className="text-gray-400 block font-mono uppercase mb-1.5">Recipient Financial Email</label>
                   <input
                     type="email"
                     placeholder="billing@acme.com"
                     value={invoiceEmail}
                     onChange={(e) => setInvoiceEmail(e.target.value)}
                     className="w-full bg-[#080d14] py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none"
+                    id="invoice-email-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1">Clearing dev</label>
+                    <label htmlFor="invoice-currency-select" className="text-gray-400 block font-mono uppercase mb-1">Clearing dev</label>
                     <select
                       value={invoiceCurrency}
                       onChange={(e) => setInvoiceCurrency(e.target.value)}
                       className="w-full bg-[#080d14] py-2 px-2 border border-white/10 rounded-xl focus:outline-none"
+                      id="invoice-currency-select"
                     >
                       <option value="EUR">EUR (€)</option>
                       <option value="USD">USD ($)</option>
@@ -2211,23 +2229,25 @@ export default function App() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1">Quantity/Hours</label>
+                    <label htmlFor="invoice-hours-input" className="text-gray-400 block font-mono uppercase mb-1">Quantity/Hours</label>
                     <input
                       type="number"
                       required
                       value={invoiceHours}
                       onChange={(e) => setInvoiceHours(e.target.value)}
                       className="w-full bg-[#080d14] py-2 px-2.5 border border-white/10 rounded-xl focus:outline-none"
+                      id="invoice-hours-input"
                     />
                   </div>
                   <div>
-                    <label className="text-gray-400 block font-mono uppercase mb-1">Billing Rate</label>
+                    <label htmlFor="invoice-rate-input" className="text-gray-400 block font-mono uppercase mb-1">Billing Rate</label>
                     <input
                       type="number"
                       required
                       value={invoiceRate}
                       onChange={(e) => setInvoiceRate(e.target.value)}
                       className="w-full bg-[#080d14] py-2 px-2.5 border border-white/10 rounded-xl focus:outline-none"
+                      id="invoice-rate-input"
                     />
                   </div>
                 </div>

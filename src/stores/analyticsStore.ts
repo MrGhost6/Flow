@@ -36,26 +36,22 @@ export const useAnalyticsStore = create<AnalyticsState>((set) => ({
       if (!res.ok) throw new Error('Failed to fetch analytics overview');
       const data = await res.json();
       
-      // Calculate pie data
-      const catData = Object.entries(data.categoriesBreakdown || {}).map(([key, value]) => {
-        let color = '#2792ff';
-        if (key === 'Dining') color = '#00dfc6';
-        if (key === 'Utilities') color = '#cabeff';
-        if (key === 'Travel') color = '#a5c8ff';
-        return { name: key, value: Number(value), color };
-      });
+      // Backend returns: { totalIncome, totalExpenses, netCashflow, balance, transactionCount }
+      // Calculate pie data (backend doesn't return categoriesBreakdown, use empty)
+      const catData: { name: string; value: number; color: string }[] = [];
 
       // Calculate trends
       const trendRes = await fetch(`/api/analytics/trends?timeframe=${selectedTimeframe}`);
-      const trendData = trendRes.ok ? await trendRes.json() : [];
+      const trendRaw = trendRes.ok ? await trendRes.json() : [];
+      const trendData = Array.isArray(trendRaw) ? trendRaw : (trendRaw.trends || []);
 
       set({
         overview: {
-          totalSpent: data.totalMonthlySpentUSD.toFixed(2),
-          totalReceived: (data.totalMonthlySpentUSD * 1.5).toFixed(2), // proportional income mock
-          netCashflow: (data.totalMonthlySpentUSD * 0.5).toFixed(2),
-          topCategory: data.topCategory || 'Dining',
-          savingsRate: `${data.savingsRatePercentage || 74}%`
+          totalSpent: (data.totalExpenses || 0).toFixed(2),
+          totalReceived: (data.totalIncome || 0).toFixed(2),
+          netCashflow: (data.netCashflow || 0).toFixed(2),
+          topCategory: 'Other',
+          savingsRate: data.totalIncome > 0 ? ((data.totalIncome - data.totalExpenses) / data.totalIncome * 100).toFixed(1) + '%' : '0.0%'
         },
         categories: catData,
         trends: trendData,

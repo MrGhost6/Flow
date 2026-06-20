@@ -177,8 +177,8 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
         {/* Page Header matching mockup */}
         <header className="flex justify-between items-end pb-2">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-none mb-1">Your Cards</h1>
-            <p className="text-xs sm:text-sm text-gray-400 font-medium">Manage physical and virtual liquid assets.</p>
+            <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.02em] mb-1">Your Cards</h1>
+            <p className="text-[#8a919f] max-w-2xl">Manage physical and virtual liquid assets.</p>
           </div>
           <button
             onClick={() => setIsCreating(true)}
@@ -197,7 +197,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
         <div className="xl:col-span-2 space-y-6">
           
           {/* Card visual stack wrapper */}
-          <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[380px] shadow-xl hover:border-white/10 transition-all duration-300">
+          <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-8 relative overflow-hidden flex flex-col items-center justify-center min-h-[380px] shadow-xl hover:border-white/10 hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300">
             {/* Ambient aesthetic glow background */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#00dfc6]/10 rounded-full blur-[100px] pointer-events-none" />
             
@@ -236,7 +236,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
 
                     {/* MID DECK: CPU chip & togglable card numerical display */}
                     <div className="relative z-10 flex flex-col gap-1 mt-4">
-                      <div className="w-12 h-9 bg-linear-to-br from-amber-200 to-amber-500/50 rounded-md mb-2 flex items-center justify-center border border-white/10 shadow-inner">
+                      <div className="w-12 h-9 bg-gradient-to-br from-amber-200 to-amber-500/50 rounded-md mb-2 flex items-center justify-center border border-white/10 shadow-inner">
                         <Cpu className="w-5 h-5 text-black/50" />
                       </div>
                       
@@ -312,9 +312,9 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                   <button
                     key={c.id}
                     onClick={() => setActiveCardId(c.id)}
-                    className={`px-4 py-2 rounded-full text-[11px] font-bold font-mono tracking-wider transition-all duration-300 ${
+                    className={`px-4 py-2 rounded-full text-[11px] font-bold font-mono tracking-wider hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300 ${
                       isActive
-                        ? 'bg-white/15 text-[#00E0C7] border border-[#00E0C7]/30 shadow-md shadow-black/25 scale-102'
+                        ? 'bg-white/15 text-[#00E0C7] border border-[#00E0C7]/30 shadow-md shadow-black/25 scale-100'
                         : 'bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/5 text-gray-400 hover:text-white'
                     }`}
                     id={`card-selector-pill-${c.id}`}
@@ -328,7 +328,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
 
           {/* Monthly Spending Limit section matching design mockup */}
           {activeCard && (
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 shadow-xl">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300 shadow-xl">
               <div className="flex justify-between items-center mb-6 gap-2">
                 <div>
                   <h3 className="text-lg font-bold text-white leading-none">Monthly Spending Limit</h3>
@@ -387,7 +387,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
           
           {/* Security center card list */}
           {activeCard && (
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 shadow-xl">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300 shadow-xl">
               <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-[#00E0C7]" />
                 <span>Security Center</span>
@@ -491,7 +491,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
               <div className="flex gap-2.5 mt-4">
                 <button
                   onClick={() => handleToggleFreeze(activeCard.id)}
-                  className={`flex-1 py-3 px-4 rounded-xl border font-bold text-[11px] font-mono tracking-wider uppercase transition-all duration-300 flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-3 px-4 rounded-xl border font-bold text-[11px] font-mono tracking-wider uppercase hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300 flex items-center justify-center gap-2 ${
                     activeCard.isFrozen
                       ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15'
                       : 'bg-rose-500/5 hover:bg-rose-500/10 border-rose-500/10 text-rose-400'
@@ -514,7 +514,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                 {/* Dispose card capability */}
                 <button
                   onClick={() => {
-                    if (confirm("Permanently destroy this single-use ledger card? This action is irreversible.")) {
+                    if (window.confirm("Permanently destroy this single-use ledger card? This action is irreversible.")) {
                       handleDeleteCard(activeCard.id);
                     }
                   }}
@@ -532,7 +532,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
           {/* Design your next card visual block */}
           <section 
             onClick={() => setIsCreating(true)}
-            className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 shadow-xl cursor-pointer group"
+            className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300 shadow-xl cursor-pointer group"
           >
             <div className="flex justify-between items-center mb-4 gap-2">
               <h3 className="text-xs uppercase font-mono tracking-wider font-bold text-gray-400">Design Your Next Card</h3>
@@ -675,7 +675,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
         {/* Freeze Card Tactile Switch */}
         {activeCard && (
           <label 
-            className="w-full glass-panel rounded-2xl p-4.5 flex justify-between items-center cursor-pointer hover:bg-white/[0.02] transition-colors"
+            className="w-full glass-panel rounded-2xl p-5 flex justify-between items-center cursor-pointer hover:bg-white/[0.02] transition-colors"
             id="mobile-freeze-toggle-wrapper"
           >
             <div className="flex items-center gap-4">
@@ -700,12 +700,12 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                 onChange={() => handleToggleFreeze(activeCard.id)}
                 className="sr-only"
               />
-              <div className={`w-12 h-6.5 rounded-full border transition-colors duration-200 relative flex items-center ${
+              <div className={`w-12 h-7 rounded-full border transition-colors duration-200 relative flex items-center ${
                 activeCard.isFrozen
                   ? 'bg-rose-500 border-rose-500'
                   : 'bg-outline-variant border-transparent'
               }`}>
-                <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
+                <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
                   activeCard.isFrozen ? 'translate-x-[22px]' : 'translate-x-[4px]'
                 }`} />
               </div>
@@ -733,10 +733,10 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                     onChange={() => setContactless(prev => ({ ...prev, [activeCard.id]: !prev[activeCard.id] }))}
                     className="sr-only"
                   />
-                  <div className={`w-12 h-6.5 rounded-full border transition-colors duration-200 relative flex items-center ${
+                  <div className={`w-12 h-7 rounded-full border transition-colors duration-200 relative flex items-center ${
                     contactless[activeCard.id] ? 'bg-primary border-primary' : 'bg-outline-variant border-transparent'
                   }`}>
-                    <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
+                    <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
                       contactless[activeCard.id] ? 'translate-x-[22px]' : 'translate-x-[4px]'
                     }`} />
                   </div>
@@ -758,10 +758,10 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                     onChange={() => setAtm(prev => ({ ...prev, [activeCard.id]: !prev[activeCard.id] }))}
                     className="sr-only"
                   />
-                  <div className={`w-12 h-6.5 rounded-full border transition-colors duration-200 relative flex items-center ${
+                  <div className={`w-12 h-7 rounded-full border transition-colors duration-200 relative flex items-center ${
                     atm[activeCard.id] ? 'bg-primary border-primary' : 'bg-outline-variant border-transparent'
                   }`}>
-                    <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
+                    <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
                       atm[activeCard.id] ? 'translate-x-[22px]' : 'translate-x-[4px]'
                     }`} />
                   </div>
@@ -783,10 +783,10 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                     onChange={() => setOnlineEnabled(prev => ({ ...prev, [activeCard.id]: !prev[activeCard.id] }))}
                     className="sr-only"
                   />
-                  <div className={`w-12 h-6.5 rounded-full border transition-colors duration-200 relative flex items-center ${
+                  <div className={`w-12 h-7 rounded-full border transition-colors duration-200 relative flex items-center ${
                     onlineEnabled[activeCard.id] ? 'bg-primary border-primary' : 'bg-outline-variant border-transparent'
                   }`}>
-                    <div className={`w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
+                    <div className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200 absolute ${
                       onlineEnabled[activeCard.id] ? 'translate-x-[22px]' : 'translate-x-[4px]'
                     }`} />
                   </div>
@@ -819,7 +819,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                     }
                   }
                 }}
-                className="h-9 px-4.5 rounded-full bg-white/[0.05] border border-outline-variant/20 text-[#a5c8ff] hover:text-white text-xs font-bold active:scale-95 transition-all cursor-pointer"
+                className="h-9 px-5 rounded-full bg-white/[0.05] border border-outline-variant/20 text-[#a5c8ff] hover:text-white text-xs font-bold active:scale-95 transition-all cursor-pointer"
               >
                 EDIT
               </button>
@@ -854,7 +854,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
           <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-700" style={{ backgroundImage: 'radial-gradient(circle at 70% 30%, #a5c8ff 0%, transparent 70%)' }}></div>
           <div className="relative z-10 flex flex-col gap-4">
             <div className="w-11 h-11 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center">
-              <Sparkles className="w-5.5 h-5.5 text-primary" />
+              <Sparkles className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">Design Your Next Card</h3>
@@ -874,7 +874,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
           <div className="pt-2">
             <button
               onClick={() => {
-                if (confirm("Permanently destroy this single-use ledger card? This action is irreversible.")) {
+                if (window.confirm("Permanently destroy this single-use ledger card? This action is irreversible.")) {
                   handleDeleteCard(activeCard.id);
                 }
               }}
@@ -921,7 +921,7 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
               <div className="space-y-4 text-xs">
                 {/* 1. Card Type Selection */}
                 <div>
-                  <label className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Prototyping Level</label>
+                  <p className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Prototyping Level</p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setNewCardType('virtual')}
@@ -949,11 +949,12 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                 {/* 2. Billing currency and trigger pool limits */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Clearance Base</label>
+                    <label htmlFor="newcard-currency-select" className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Clearance Base</label>
                     <select
                       value={newCardCurrency}
                       onChange={(e) => setNewCardCurrency(e.target.value)}
                       className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="newcard-currency-select"
                     >
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
@@ -961,19 +962,20 @@ export default function CardManager({ cards, profile, onUpdateCards }: CardProps
                     </select>
                   </div>
                   <div>
-                    <label className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Trigger Limit</label>
+                    <label htmlFor="newcard-limit-input" className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Trigger Limit</label>
                     <input
                       type="number"
                       value={newCardLimit}
                       onChange={(e) => setNewCardLimit(parseInt(e.target.value) || 1000)}
                       className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="newcard-limit-input"
                     />
                   </div>
                 </div>
 
                 {/* 3. Designer visual shells */}
                 <div>
-                  <label className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Visual Core Shell</label>
+                  <p className="text-gray-500 block font-mono font-bold uppercase tracking-wider mb-2">Visual Core Shell</p>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(TEMPLATE_STYLES).map(([key, style]) => (
                       <button

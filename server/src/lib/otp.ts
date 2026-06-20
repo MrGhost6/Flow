@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { redisGet, redisSet, redisDel } from "../database/redis";
 
 export async function storeOtp(token: string, userId: string, email: string, otpCode: string, type: string) {
-  const hash = await bcrypt.hash(otpCode, 6);
+  const hash = await bcrypt.hash(otpCode, 10);
   const payload = JSON.stringify({ hash, userId, email, attempts: 0, type, expiresAt: Date.now() + 300_000 });
   await redisSet(`otp:${token}`, payload, 300);
 }

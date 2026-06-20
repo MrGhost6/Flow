@@ -11,3 +11,8 @@ export async function markRead(req: Request, res: Response) {
   await service.markRead(req.userId!, req.params.id);
   return sendSuccess(res, {});
 }
+
+export async function dismiss(req: Request, res: Response) {
+  await service.dismiss(req.userId!, req.params.id);
+  return sendSuccess(res, {});
+}

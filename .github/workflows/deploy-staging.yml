@@ -1,16 +1,26 @@
 name: FLOW Deploy Staging (Regulatory Testbed)
 
 on:
-  push:
-    branches: [development]
+  workflow_run:
+    workflows: ["Backend CI"]
+    types:
+      - completed
+    branches: [staging]
 
 jobs:
   deploy:
     name: Package Image & Run Staging Deployment
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
+
+      - name: Check CI status
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        run: exit 1
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2

@@ -1,33 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Shield, 
-  ShieldAlert, 
-  ShieldCheck, 
-  Fingerprint, 
-  Laptop, 
-  Smartphone, 
-  Globe, 
-  MapPin, 
-  Activity, 
-  Power, 
-  RefreshCw, 
-  AlertOctagon, 
-  Compass, 
-  Lock, 
-  Unlock, 
-  UserCheck, 
-  History, 
-  User, 
-  CheckCircle2, 
-  XCircle,
+import {
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Fingerprint,
+  Laptop,
+  Smartphone,
+  Globe,
+  MapPin,
+  Activity,
+  Power,
+  RefreshCw,
+  AlertOctagon,
+  Lock,
+  Unlock,
+  UserCheck,
+  History,
   AlertTriangle,
-  FileText,
   Clock,
-  ExternalLink,
-  HelpCircle,
   ToggleLeft,
   ToggleRight
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { useSecurityStore } from '../stores/securityStore';
 import { useDeviceStore } from '../stores/deviceStore';
 import { useFraudStore } from '../stores/fraudStore';
@@ -206,10 +200,10 @@ export default function SecurityCenter() {
               </span>
               <span className="text-xs font-mono font-semibold text-[#00E0C7] tracking-widest uppercase">Fintech Security Infrastructure</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
-              FLOW Security & Trust Center
+            <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.02em] mb-2">
+              Security & Trust Center
             </h1>
-            <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
+            <p className="text-[#8a919f] max-w-2xl">
               Advanced machine-learning fraud detection, encrypted hardware cryptographic device trust, and instant ledger isolation controls protect your multi-currency funds at all times.
             </p>
           </div>
@@ -238,7 +232,7 @@ export default function SecurityCenter() {
           <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl text-center md:text-left">
             <span className="text-[10px] uppercase font-mono tracking-wider text-gray-500 block mb-1">Security Health</span>
             <div className="flex items-center justify-center md:justify-start gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
               <span className="text-sm font-bold text-white uppercase tracking-wide">
                 {overview?.riskScore === 'critical' ? 'LOCKED' : 'OPTIMAL'}
               </span>
@@ -249,7 +243,7 @@ export default function SecurityCenter() {
             <span className="text-[10px] uppercase font-mono tracking-wider text-gray-500 block mb-1">Defense Score</span>
             <div className="flex items-center justify-center md:justify-start gap-1.5">
               <span className="text-sm font-mono font-bold text-[#00E0C7]">
-                {overview?.riskScoreValue || 95}/100
+                {overview?.riskScoreValue ?? 95}/100
               </span>
               <span className={`text-[9px] font-semibold border px-1.5 py-0.5 rounded-md ${getRiskColor(overview?.riskScore || 'low')}`}>
                 {overview?.riskScore} risk
@@ -269,12 +263,12 @@ export default function SecurityCenter() {
             <div className="text-sm font-bold flex items-center justify-center md:justify-start gap-1.5">
               {overview?.recentAlerts && overview.recentAlerts > 0 ? (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true" />
                   <span className="text-amber-400 font-mono">{overview.recentAlerts} Suspicious</span>
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
                   <span className="text-gray-400">0 Outstanding</span>
                 </>
               )}
@@ -361,7 +355,7 @@ export default function SecurityCenter() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
               {/* ANALYTICAL RISK ENGINE CARDS */}
-              <div className="lg:col-span-4 bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+              <div className="lg:col-span-4 bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
                 <h3 className="text-sm font-bold uppercase font-mono tracking-wider text-white mb-4 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-[#00E0C7]" />
                   <span>Dynamic Scoring</span>
@@ -415,7 +409,7 @@ export default function SecurityCenter() {
               </div>
 
               {/* ACTIVE FRAUD DETECTOR EVENTS IN REAL TIME */}
-              <div className="lg:col-span-8 bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+              <div className="lg:col-span-8 bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-bold uppercase font-mono tracking-wider text-white flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-500 animate-bounce" />
@@ -430,7 +424,7 @@ export default function SecurityCenter() {
                   <div className="flex justify-center items-center py-12">
                     <RefreshCw className="w-5 h-5 text-[#00E0C7] animate-spin" />
                   </div>
-                ) : fraudEvents.filter(e => !e.resolved).length === 0 ? (
+                ) : fraudEvents.filter(e => e.status !== 'RESOLVED').length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-14 text-center">
                     <div className="p-4 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20 mb-3">
                       <ShieldCheck className="w-8 h-8" />
@@ -450,16 +444,16 @@ export default function SecurityCenter() {
                       <div 
                         key={event.id}
                         className={`p-4 border rounded-2xl transition-all relative overflow-hidden ${
-                          event.resolved 
+                          event.status === 'RESOLVED' 
                             ? 'bg-white/5 border-white/5 opacity-60' 
                             : 'bg-amber-500/[0.03] border-amber-500/20'
                         }`}
                       >
                         <div className="flex gap-3 relative z-10">
                           <span className={`p-2 rounded-xl mt-1 shrink-0 ${
-                            event.resolved 
+                            event.status === 'RESOLVED' 
                               ? 'bg-gray-500/10 text-gray-400' 
-                              : (event.riskLevel === 'high' || event.riskLevel === 'critical' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400')
+                              : (event.riskLevel === 'HIGH' || event.riskLevel === 'CRITICAL' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400')
                           }`}>
                             <AlertOctagon className="w-4 h-4" />
                           </span>
@@ -470,11 +464,11 @@ export default function SecurityCenter() {
                                 {event.eventType === 'impossible_travel' ? 'IMPOSSIBLE TRAVEL LOG' : 'IRREGULAR TRANSACTION SPIKE'}
                               </span>
                               <span className={`text-[9px] uppercase font-mono px-2 py-0.5 rounded ${
-                                event.resolved 
+                                event.status === 'RESOLVED' 
                                   ? 'bg-emerald-500/10 text-emerald-400' 
-                                  : (event.riskLevel === 'high' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-500')
+                                  : (event.riskLevel === 'HIGH' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-500')
                               }`}>
-                                {event.resolved ? 'RESOLVED' : `${event.riskLevel} risk`}
+                                {event.status === 'RESOLVED' ? 'RESOLVED' : `${event.riskLevel} risk`}
                               </span>
                               <span className="text-[10px] text-gray-500 font-mono ml-auto">
                                 {new Date(event.createdAt).toLocaleTimeString()}
@@ -485,7 +479,7 @@ export default function SecurityCenter() {
                               {event.description}
                             </p>
 
-                            {!event.resolved && (
+                            {event.status !== 'RESOLVED' && (
                               <div className="mt-3 flex items-center gap-3">
                                 <button
                                   onClick={() => handleVouchAlert(event.id)}
@@ -513,7 +507,7 @@ export default function SecurityCenter() {
 
           {/* SEGMENT 2: TRUSTED DEVICES & SESSIONS */}
           {activeSegment === 'devices' && (
-            <div className="bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+            <div className="bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
               <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase font-mono tracking-wider text-white">
@@ -644,7 +638,7 @@ export default function SecurityCenter() {
 
           {/* SEGMENT 3: DETAILED LOGIN HISTORIES */}
           {activeSegment === 'history' && (
-            <div className="bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+            <div className="bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
               <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase font-mono tracking-wider text-white">
@@ -703,7 +697,7 @@ export default function SecurityCenter() {
 
           {/* SEGMENT 4: BIOMETRIC AND MFA CONFIGURATION */}
           {activeSegment === 'biometrics' && (
-            <div className="bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+            <div className="bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
               <h3 className="text-sm font-bold uppercase font-mono tracking-wider text-white mb-4">
                 Biometric Controls & Hardware Encryption Settings
               </h3>
@@ -732,7 +726,7 @@ export default function SecurityCenter() {
                       await toggleBiometrics(!current);
                       await syncAllData();
                     }}
-                    className="p-1.5 focus:outline-none transition-all active:scale-95 text-gray-300 hover:text-white"
+                    className="p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00E0C7] rounded-lg transition-all active:scale-95 text-gray-300 hover:text-white"
                   >
                     {overview?.biometricsActive ? (
                       <ToggleRight className="w-9 h-9 text-[#00E0C7]" />
@@ -759,9 +753,9 @@ export default function SecurityCenter() {
                   <button
                     onClick={async () => {
                       // Simulates switching transfer locks
-                      alert("Secured: Mandatory biometric policy successfully injected on outbound wire channels!");
+                      toast.success("Secured: Mandatory biometric policy successfully injected on outbound wire channels!");
                     }}
-                    className="p-1.5 focus:outline-none text-gray-300 hover:text-white"
+                    className="p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00E0C7] rounded-lg text-gray-300 hover:text-white"
                   >
                     <ToggleRight className="w-9 h-9 text-[#00E0C7]" />
                   </button>
@@ -787,7 +781,7 @@ export default function SecurityCenter() {
                       await toggleTwoFactor(!current);
                       await syncAllData();
                     }}
-                    className="p-1.5 focus:outline-none transition-all active:scale-95 text-gray-300 hover:text-white"
+                    className="p-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00E0C7] rounded-lg transition-all active:scale-95 text-gray-300 hover:text-white"
                   >
                     {overview?.twoFactorActive ? (
                       <ToggleRight className="w-9 h-9 text-[#00E0C7]" />
@@ -819,13 +813,13 @@ export default function SecurityCenter() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 
                 {/* ADMIN CARD PANEL: USER RISK STATUS LIST */}
-                <div className="lg:col-span-12 bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+                <div className="lg:col-span-12 bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
                   <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-white mb-4">
                     Fintech Client Ledger Security Control Panel
                   </h3>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
+                    <table className="w-full text-left border-collapse text-xs" aria-label="Admin users account status">
                       <thead>
                         <tr className="border-b border-white/5 text-gray-500 font-mono tracking-wider">
                           <th className="py-3 px-2">Account Name</th>
@@ -883,7 +877,7 @@ export default function SecurityCenter() {
                 </div>
 
                 {/* ADMIN CARD PANEL: MASTER RISK EVENT LOG */}
-                <div className="lg:col-span-12 bg-[#131722]/80 border border-white/5 rounded-3xl p-6 shadow-xl">
+                <div className="lg:col-span-12 bg-[#182029]/60 border border-[#8a919f]/10 rounded-3xl p-6 shadow-xl">
                   <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-white mb-4 flex items-center gap-2">
                     <Activity className="w-4 h-4 text-rose-500" />
                     <span>Global Anti-Money Laundering & Fraud Audit Feed</span>

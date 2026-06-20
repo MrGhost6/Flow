@@ -15,6 +15,11 @@ export async function create(req: Request, res: Response) {
   return sendSuccess(res, { budget });
 }
 
+export async function update(req: Request, res: Response) {
+  const budget = await service.update(req.userId!, req.params.id, req.body);
+  return sendSuccess(res, { budget });
+}
+
 export async function remove(req: Request, res: Response) {
   await service.remove(req.userId!, req.params.id);
   return sendSuccess(res, { message: "Budget deleted" });

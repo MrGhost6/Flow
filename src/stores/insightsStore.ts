@@ -44,19 +44,18 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
   },
 
   dismissInsight: async (id) => {
+    const prev = get().insights;
+    set({ insights: prev.filter(i => i.id !== id) });
     try {
       const res = await fetch(`/api/insights/${id}`, {
         method: 'DELETE'
       });
-      if (!res.ok) throw new Error('Could not update index logs');
-      set({
-        insights: get().insights.filter(i => i.id !== id)
-      });
+      if (!res.ok) {
+        set({ insights: prev });
+      }
     } catch (err) {
-      // Local filter fallback
-      set({
-        insights: get().insights.filter(i => i.id !== id)
-      });
+      set({ insights: prev });
+      console.warn('Silent fallback: dismiss failed', err);
     }
   }
 }));

@@ -155,9 +155,16 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
     };
   };
 
+  // Accept password if at least 4 of the 5 checks pass (len/upper/lower/number/symbol)
+  const meetsPasswordGrid = (pw: string) => {
+    const checks = checkPasswordRequirements(pw);
+    const passed = Object.values(checks).filter(Boolean).length;
+    return passed >= 4;
+  };
+
   const getCurrencyByUseCase = (u: UserType) => {
-    if (u === 'traveler') return 'USD';
-    if (u === 'business') return 'EUR';
+    if (u === 'INDIVIDUAL') return 'USD';
+    if (u === 'BUSINESS') return 'EUR';
     return 'MAD';
   };
 
@@ -196,9 +203,8 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
     setOtpError('');
 
     if (otpPurpose === 'reset-password') {
-      const checked = checkPasswordRequirements(newRecoveryPassword);
-      if (!checked.length || !checked.upper || !checked.lower || !checked.number || !checked.symbol) {
-        setOtpError('New password does not fulfill all vault security rules.');
+      if (!meetsPasswordGrid(newRecoveryPassword)) {
+        setOtpError('New password must satisfy at least 4 of 5 security checks.');
         return;
       }
 
@@ -328,8 +334,8 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
     // Check password requirements
     const pwCheck = checkPasswordRequirements(registerPassword);
-    if (!pwCheck.length || !pwCheck.upper || !pwCheck.lower || !pwCheck.number || !pwCheck.symbol) {
-      setRegisterError('Password fails to meet 5-grid security rules.');
+    if (!meetsPasswordGrid(registerPassword)) {
+      setRegisterError('Password must satisfy at least 4 of 5 vault security rules.');
       return;
     }
 
@@ -421,17 +427,17 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
   };
 
   // Quick Demo Access triggers to bypass custom onboarding
-  const handleDemoLogin = async (profileKey: 'freelancer' | 'business') => {
-    const demoProfile = profileKey === 'freelancer' ? {
+  const handleDemoLogin = async (profileKey: 'INDIVIDUAL' | 'BUSINESS') => {
+    const demoProfile = profileKey === 'INDIVIDUAL' ? {
       name: 'Anas El Amrani',
       email: 'anas@flow.io',
-      userType: 'freelancer' as const,
+      userType: 'INDIVIDUAL' as const,
       primaryCurrency: 'MAD',
       country: 'Morocco'
     } : {
       name: 'Yassine Benjelloun',
       email: 'yassine@benjellouncorp.ma',
-      userType: 'business' as const,
+      userType: 'BUSINESS' as const,
       primaryCurrency: 'EUR',
       country: 'Morocco'
     };
@@ -698,7 +704,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                   
                   {/* Email */}
                   <div className="group">
-                    <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                    <label htmlFor="login-email-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                       Email Address
                     </label>
                     <div className="relative flex items-center">
@@ -718,7 +724,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                   {/* Password */}
                   <div className="group">
                     <div className="flex justify-between items-center mb-1.5">
-                      <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 transition-colors group-focus-within:text-[#00E0C7]">
+                      <label htmlFor="login-password-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 transition-colors group-focus-within:text-[#00E0C7]">
                         Secret Password
                       </label>
                       <button 
@@ -752,7 +758,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                   <button 
                     type="submit"
-                    className="w-full py-3.5 mt-2 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.2)] cursor-pointer"
+                    className="w-full py-3.5 mt-2 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.2)] cursor-pointer"
                     id="login-submit-btn"
                   >
                     <LogIn className="w-3.5 h-3.5" />
@@ -765,7 +771,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                   <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-2.5 font-bold">FAST-PASS PRESET DEMO PROFILES</span>
                   <div className="grid grid-cols-2 gap-3 max-w-md mx-auto lg:mx-0">
                     <button
-                      onClick={() => handleDemoLogin('freelancer')}
+                      onClick={() => handleDemoLogin('INDIVIDUAL')}
                       className="px-3.5 py-3 border border-[#00E0C7]/20 hover:border-[#00E0C7] bg-[#00E0C7]/5 rounded-xl text-left transition-all active:scale-[0.98] cursor-pointer"
                     >
                       <div className="text-[9px] font-mono font-bold text-[#00E0C7] uppercase leading-none">Anas El Amrani</div>
@@ -773,7 +779,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                       <div className="text-[8px] text-gray-400 mt-1 uppercase font-mono tracking-wider">Morocco Base</div>
                     </button>
                     <button
-                      onClick={() => handleDemoLogin('business')}
+                      onClick={() => handleDemoLogin('BUSINESS')}
                       className="px-3.5 py-3 border border-[#7B5CFF]/20 hover:border-[#7b5cff] bg-[#7B5CFF]/5 rounded-xl text-left transition-all active:scale-[0.98] cursor-pointer"
                     >
                       <div className="text-[9px] font-mono font-bold text-[#7B5CFF] uppercase leading-none">Y. Benjelloun</div>
@@ -890,7 +896,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                   
                   {/* Full Name */}
                   <div className="group">
-                    <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                    <label htmlFor="register-name-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                       Full Legal Name
                     </label>
                     <div className="relative flex items-center">
@@ -910,7 +916,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                   {/* Email & Phone */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="group">
-                      <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                      <label htmlFor="register-email-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                         Email Address
                       </label>
                       <div className="relative flex items-center">
@@ -928,7 +934,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                     </div>
 
                     <div className="group">
-                      <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                      <label htmlFor="register-phone-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                         Phone Number
                       </label>
                       <div className="relative flex items-center">
@@ -948,7 +954,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                   {/* Password */}
                   <div className="group">
-                    <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                    <label htmlFor="register-password-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                       Choose Account Password
                     </label>
                     <div className="relative flex items-center">
@@ -974,7 +980,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                   <button 
                     type="submit"
-                    className="w-full py-3.5 mt-2 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(123,92,255,0.2)] cursor-pointer"
+                    className="w-full py-3.5 mt-2 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(123,92,255,0.2)] cursor-pointer"
                     id="register-submit-btn"
                   >
                     <span>Register Account</span>
@@ -1034,7 +1040,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                 
                 {/* Email */}
                 <div className="group">
-                  <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                  <label htmlFor="recovery-email-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                     Account Email Address
                   </label>
                   <div className="relative flex items-center">
@@ -1053,7 +1059,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                 {/* Password parameters for when OTP screen updates */}
                 <div className="group">
-                  <label className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
+                  <label htmlFor="recovery-newpassword-input" className="block text-[10px] uppercase tracking-widest font-mono text-gray-400 mb-1.5 transition-colors group-focus-within:text-[#00E0C7]">
                     Declare New Password
                   </label>
                   <div className="relative flex items-center">
@@ -1110,7 +1116,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                 <button 
                   type="submit"
-                  className="w-full py-3.5 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.2)] cursor-pointer"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.2)] cursor-pointer"
                 >
                   <span>Request Reset PIN</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1146,7 +1152,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                   className="mb-6 p-4 rounded-2xl bg-[#00E0C7]/10 border border-[#00E0C7]/20 flex items-center justify-between gap-3 text-xs text-white"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#00E0C7] animate-ping shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-[#00E0C7] animate-ping shrink-0" aria-label="Simulated OTP indicator" />
                     <span className="font-mono text-gray-400 uppercase tracking-wider">Simulated Message:</span>
                     <span className="font-mono font-bold text-[#00E0C7] tracking-widest">{simulatedOtp}</span>
                   </div>
@@ -1187,9 +1193,9 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                 
                 {/* 6 Grid Inputs */}
                 <div>
-                  <label className="block text-[10px] uppercase font-mono tracking-widest text-center text-gray-400 mb-4 font-bold">
+                  <p className="block text-[10px] uppercase font-mono tracking-widest text-center text-gray-400 mb-4 font-bold">
                     6-DIGIT MFA PIN SECURITY CHECK
-                  </label>
+                  </p>
                   <div className="flex justify-center gap-2 sm:gap-3">
                     {otpInput.map((digit, index) => (
                       <input 
@@ -1224,7 +1230,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                 <button 
                   type="submit"
-                  className="w-full py-3.5 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.2)] cursor-pointer"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_15px_rgba(30,144,255,0.2)] cursor-pointer"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-300" />
                   <span>Authenticate & Open Vault</span>
@@ -1335,7 +1341,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                         
                         {/* Name field */}
                         <div className="relative group">
-                          <label className="block text-xs uppercase tracking-widest font-mono text-gray-400 mb-2 transition-colors group-focus-within:text-[#00E0C7]">
+                          <label htmlFor="fullname-input-field" className="block text-xs uppercase tracking-widest font-mono text-gray-400 mb-2 transition-colors group-focus-within:text-[#00E0C7]">
                             Full Legal Name
                           </label>
                           <div className="relative flex items-center">
@@ -1354,7 +1360,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                         {/* DOB and nationality inputs */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                           <div className="relative group">
-                            <label className="block text-xs uppercase tracking-widest font-mono text-gray-400 mb-2 transition-colors group-focus-within:text-[#00E0C7]">
+                            <label htmlFor="dob-input-field" className="block text-xs uppercase tracking-widest font-mono text-gray-400 mb-2 transition-colors group-focus-within:text-[#00E0C7]">
                               Date of Birth
                             </label>
                             <input 
@@ -1368,7 +1374,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                           </div>
 
                           <div className="relative group">
-                            <label className="block text-xs uppercase tracking-widest font-mono text-gray-400 mb-2 transition-colors group-focus-within:text-[#00E0C7]">
+                            <label htmlFor="nationality-dropdown-field" className="block text-xs uppercase tracking-widest font-mono text-gray-400 mb-2 transition-colors group-focus-within:text-[#00E0C7]">
                               Nationality / Location
                             </label>
                             <select
@@ -1398,7 +1404,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                             setRegisterError('');
                             setCurrentStep(2);
                           }}
-                          className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.3)] cursor-pointer"
+                          className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.3)] cursor-pointer"
                           id="btn-onboarding-continue-1"
                         >
                           <span>Continue Setup</span>
@@ -1549,7 +1555,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                         </button>
                         <button 
                           onClick={() => setCurrentStep(3)}
-                          className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.3)] cursor-pointer"
+                          className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.3)] cursor-pointer"
                           id="btn-onboarding-continue-2"
                         >
                           <span>Continue Setup</span>
@@ -1589,16 +1595,17 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                         {/* Box 1: Legal Documentation scanning */}
                         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md space-y-4">
                           <h3 className="font-semibold text-sm text-white flex items-center gap-2 font-sans uppercase tracking-wider text-[#00E0C7]">
-                            <FileText className="w-4.5 h-4.5" />
+                            <FileText className="w-5 h-5" />
                             <span>1. Scan Government ID</span>
                           </h3>
 
                           <div>
-                            <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1.5 font-bold">Document Type</label>
+                            <label htmlFor="kyc-doctype-select" className="block text-[10px] uppercase font-mono text-gray-400 mb-1.5 font-bold">Document Type</label>
                             <select 
                               value={docType}
                               onChange={(e) => setDocType(e.target.value)}
                               className="w-full bg-black/45 border border-white/10 rounded-xl px-3 py-2 text-xs focus:ring-1 focus:ring-[#00E0C7] text-white"
+                              id="kyc-doctype-select"
                             >
                               <option value="CNIE Moroccan ID">Moroccan National ID (CNIE)</option>
                               <option value="Passport">Global Passport Identification</option>
@@ -1607,13 +1614,14 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                           </div>
 
                           <div>
-                            <label className="block text-[10px] uppercase font-mono text-gray-400 mb-1.5 font-bold">Document Registration Serial</label>
+                            <label htmlFor="kyc-docserial-input" className="block text-[10px] uppercase font-mono text-gray-400 mb-1.5 font-bold">Document Registration Serial</label>
                             <input 
                               type="text" 
                               value={docNumber}
                               onChange={(e) => setDocNumber(e.target.value.toUpperCase())}
                               placeholder="e.g. BK700142"
                               className="w-full bg-black/45 border border-white/10 focus:border-[#00E0C7] rounded-xl px-3 py-2 text-xs text-white"
+                              id="kyc-docserial-input"
                             />
                           </div>
 
@@ -1652,7 +1660,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                         {/* Box 2: Face validation liveness check */}
                         <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-md space-y-4">
                           <h3 className="font-semibold text-sm text-white flex items-center gap-2 font-sans uppercase tracking-wider text-[#7B5CFF]">
-                            <Camera className="w-4.5 h-4.5" />
+                            <Camera className="w-5 h-5" />
                             <span>2. Liveness Selfie Mesh</span>
                           </h3>
 
@@ -1723,7 +1731,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
                         </button>
                         <button 
                           onClick={handleKycSubmit}
-                          className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider hover:brightness-110 active:scale-98 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.3)] cursor-pointer"
+                          className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-[0_4px_20px_rgba(30,144,255,0.3)] cursor-pointer"
                           id="btn-onboarding-continue-3"
                         >
                           <span>Verify & Submit dossier</span>
@@ -1854,7 +1862,15 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
 
                           <div className="pt-6">
                             <button 
-                              onClick={handleFinish}
+                              onClick={() => {
+                                const pinStr = pin.join('');
+                                if (pinStr.length < 6) {
+                                  setRegisterError('Please enter all 6 digits of your security PIN.');
+                                  return;
+                                }
+                                setRegisterError('');
+                                handleFinish();
+                              }}
                               className="w-full py-3.5 rounded-xl bg-gradient-to-tr from-[#1E90FF] to-[#7B5CFF] text-white font-semibold text-xs tracking-widest hover:brightness-110 shadow-[0_4px_24px_rgba(30,144,255,0.4)] transition-all uppercase cursor-pointer"
                               id="btn-platform-final-access"
                             >
@@ -1882,9 +1898,9 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
           Secured with dual factor military encryption · PCI-DSS Compliant
         </span>
         <div className="flex gap-4 text-[9px] text-gray-500 font-mono uppercase tracking-widest font-semibold">
-          <a href="#privacy" className="hover:text-white transition-colors">Privacy</a>
+          <button onClick={() => {}} className="hover:text-white transition-colors bg-transparent border-none p-0 text-[9px] font-mono uppercase tracking-widest font-semibold text-gray-500 cursor-pointer">Privacy</button>
           <span>·</span>
-          <a href="#terms" className="hover:text-white transition-colors">Terms of use</a>
+          <button onClick={() => {}} className="hover:text-white transition-colors bg-transparent border-none p-0 text-[9px] font-mono uppercase tracking-widest font-semibold text-gray-500 cursor-pointer">Terms of use</button>
         </div>
       </footer>
     </div>

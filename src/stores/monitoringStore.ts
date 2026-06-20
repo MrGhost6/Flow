@@ -89,12 +89,24 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
   fetchMetrics: async () => {
     set({ isFetchingMetrics: true });
     try {
-      const res = await fetch('/api/metrics/performance');
+      const res = await fetch('/api/metrics/perf');
       if (!res.ok) throw new Error('Failed to fetch APM telemetry');
       const data = await res.json();
       set({ 
-        metrics: data.metrics, 
-        prometheusRaw: data.prometheusRaw, 
+        metrics: {
+          cpuPercentage: data.cpu ? (data.cpu.user + data.cpu.system) / 10000 : 0,
+          memoryUsageMB: data.memory ? Math.round(data.memory.rss / 1024 / 1024) : 0,
+          apiLatencySeconds: 0,
+          httpRequestsTotal: 0,
+          failedRequestsTotal: 0,
+          redisMemoryLimitBytes: 0,
+          dbConnectionActive: 0,
+          jwtSignaturesGenerated: 0,
+          queueBackpressureSize: 0,
+          activeContainers: 0,
+          threatTriggersFired: 0,
+        },
+        prometheusRaw: '',
         isFetchingMetrics: false, 
         error: null 
       });
@@ -106,7 +118,7 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
   fetchLogs: async (source = 'all', level = 'all') => {
     set({ isFetchingLogs: true });
     try {
-      const res = await fetch(`/api/logs/query?source=${source}&level=${level}`);
+      const res = await fetch(`/api/logs/query?source=${encodeURIComponent(source)}&level=${encodeURIComponent(level)}`);
       if (!res.ok) throw new Error('Log query engine connection error');
       const data = await res.json();
       set({ logs: data.logs, isFetchingLogs: false, error: null });
@@ -120,8 +132,23 @@ export const useMonitoringStore = create<MonitoringState>((set) => ({
     try {
       const res = await fetch('/api/queues/status');
       if (!res.ok) throw new Error('Could not request worker queue counts');
-      const data = await res.json();
-      set({ queues: data, isFetchingQueues: false, error: null });
+      const raw = await res.json();
+      const queues = raw.queues || {};
+      set({
+        queues: {
+          jobs: [],
+          pending: 0,
+          running: 0,
+          completed: 0,
+          failed: 0,
+          ...Object.entries(queues).reduce((acc: any, [name, status]) => {
+            acc[name] = { name, status, jobs: 0 };
+            return acc;
+          }, {})
+        },
+        isFetchingQueues: false,
+        error: null
+      });
     } catch (err: any) {
       set({ error: err.message || 'Error requesting queue info', isFetchingQueues: false });
     }

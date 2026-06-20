@@ -21,7 +21,7 @@ import {
 interface LandingPageProps {
   onGetStarted: () => void;
   onLoginClick: () => void;
-  onDemoLogin: (profileKey: 'freelancer' | 'business') => void;
+  onDemoLogin: (profileKey: 'INDIVIDUAL' | 'BUSINESS') => void;
 }
 
 export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }: LandingPageProps) {
@@ -79,7 +79,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
         <div className="flex items-center gap-8">
           {/* Logo Brand */}
           <div 
-            className="flex items-center gap-2 cursor-pointer active:scale-98 transition-transform"
+            className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
             <div className="w-8 h-8 bg-gradient-to-tr from-[#1E90FF] to-[#7B5CFF] rounded-lg flex items-center justify-center shadow-lg shadow-[#1e90ff]/10">
@@ -134,7 +134,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
               className="p-1.5 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-colors relative"
               aria-label="Toggle notifications info"
             >
-              <Bell className="w-4.5 h-4.5" />
+              <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#00dfc6] animate-ping" />
             </button>
 
@@ -195,7 +195,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
             {/* Primary Get Started */}
             <button 
               onClick={onGetStarted}
-              className="px-8 py-4 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white rounded-xl font-semibold text-xs uppercase tracking-wider hover:scale-[1.02] active:scale-98 transition-all shadow-[0_4px_24px_rgba(30,144,255,0.3)] hover:shadow-[0_4px_30px_rgba(30,144,255,0.45)]"
+              className="px-8 py-4 bg-gradient-to-r from-[#1E90FF] to-[#7B5CFF] text-white rounded-xl font-semibold text-xs uppercase tracking-wider hover:scale-[1.02] active:scale-95 transition-all shadow-[0_4px_24px_rgba(30,144,255,0.3)] hover:shadow-[0_4px_30px_rgba(30,144,255,0.45)]"
             >
               Get Started
             </button>
@@ -207,7 +207,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
                 className="px-7 py-4 bg-[#131722]/80 hover:bg-[#1c2131] border border-white/10 text-white rounded-xl font-semibold text-xs uppercase tracking-wider transition-all flex items-center gap-2 hover:border-white/20"
               >
                 <span>View Demo Setup</span>
-                <span className={`text-[9px] text-[#00dfc6] font-mono transition-transform duration-300 ${isDemoDropdownOpen ? 'rotate-90' : ''}`}>▶</span>
+                <span className={`text-[9px] text-[#00dfc6] font-mono transition-transform duration-300 ${isDemoDropdownOpen ? 'rotate-90' : ''}`} aria-hidden="true">▸</span>
               </button>
 
               {isDemoDropdownOpen && (
@@ -218,7 +218,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
                   </div>
 
                   <div 
-                    onClick={() => onDemoLogin('freelancer')}
+                    onClick={() => onDemoLogin('INDIVIDUAL')}
                     className="p-3 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-[#1E90FF]/10 hover:border-[#1E90FF]/40 cursor-pointer transition-all flex items-start gap-3 group"
                   >
                     <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 mt-0.5 group-hover:bg-emerald-500/20">
@@ -231,7 +231,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
                   </div>
 
                   <div 
-                    onClick={() => onDemoLogin('business')}
+                    onClick={() => onDemoLogin('BUSINESS')}
                     className="p-3 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-[#7B5CFF]/10 hover:border-[#7B5CFF]/40 cursor-pointer transition-all flex items-start gap-3 group"
                   >
                     <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 mt-0.5 group-hover:bg-purple-500/20">
@@ -372,7 +372,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
             {/* Left text */}
             <div className="lg:col-span-5 space-y-4">
               <div className="inline-flex items-center gap-1 bg-[#00dfc6]/10 text-[#00dfc6] py-1 px-3.5 rounded-full border border-[#00dfc6]/25 text-[9px] font-mono tracking-widest uppercase font-bold">
-                <Sparkles className="w-3 h-3 animate-spin duration-3000" />
+                <Sparkles className="w-3 h-3 animate-spin duration-1000" />
                 Flow AI Agent Insights
               </div>
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans leading-snug">
@@ -465,7 +465,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
 
               {/* Bottom labels */}
               <div className="flex justify-between items-center text-[10px] font-mono text-gray-500 pt-4 border-t border-white/5 select-none">
-                <span>INDEX SCALE STANDARD: 2026/Q2</span>
+                <span>INDEX SCALE STANDARD: {new Date().getFullYear()}/Q2</span>
                 <span>TAILORED SWIFT SEEDING</span>
               </div>
             </div>
@@ -500,7 +500,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
               </button>
               
               <button 
-                onClick={() => onDemoLogin('freelancer')}
+                onClick={() => onDemoLogin('INDIVIDUAL')}
                 className="flex-1 bg-black/20 hover:bg-black/35 text-white border border-white/20 px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all"
               >
                 Instant Simulation
@@ -574,7 +574,7 @@ export default function LandingPage({ onGetStarted, onLoginClick, onDemoLogin }:
         </div>
 
         <div className="mt-16 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-[10px] font-mono text-gray-500 gap-4 uppercase tracking-widest text-center select-none">
-          <span>© 2026 FLOW TECHNOLOGIES INC. PARTNER SECURED SANDBOX WORKSPACE.</span>
+          <span>© {new Date().getFullYear()} FLOW TECHNOLOGIES INC. PARTNER SECURED SANDBOX WORKSPACE.</span>
           <div className="flex gap-4">
             <span className="hover:text-white cursor-pointer transition-colors">Privacy Principles</span>
             <span>·</span>

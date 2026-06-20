@@ -19,7 +19,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
   fetchBudgets: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch('/api/analytics/budgets');
+      const res = await fetch('/api/budgets');
       if (!res.ok) throw new Error('Could not load budgets');
       const data = await res.json();
       set({ budgets: data, isLoading: false });
@@ -31,10 +31,10 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
   createBudget: async (category, limitAmount, currency) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch('/api/analytics/budgets', {
+      const res = await fetch('/api/budgets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category, limitAmount, currency })
+        body: JSON.stringify({ name: category, amount: limitAmount, period: 'MONTHLY', currency })
       });
       if (!res.ok) throw new Error('Could not create budget limit');
       const newB = await res.json();
@@ -49,10 +49,10 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
   updateBudget: async (id, limitAmount) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`/api/analytics/budgets/${id}`, {
+      const res = await fetch(`/api/budgets/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limitAmount })
+        body: JSON.stringify({ amount: limitAmount })
       });
       if (!res.ok) throw new Error('Could not update budget limit');
       const updatedB = await res.json();
@@ -70,7 +70,7 @@ export const useBudgetStore = create<BudgetState>((set, get) => ({
   deleteBudget: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`/api/analytics/budgets/${id}`, {
+      const res = await fetch(`/api/budgets/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Could not delete budget');

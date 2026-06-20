@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Transaction } from '../types';
 
 export interface ExtendedTransaction extends Transaction {
-  status: 'pending' | 'processing' | 'success' | 'failed' | 'cancelled' | 'reversed';
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'REVERSED';
   reference: string;
   transaction_reference?: string;
   sender_wallet_id?: string;
@@ -115,13 +115,13 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     }
   },
 
-  setFilters: (updated) => {
+  setFilters: async (updated) => {
     set(state => ({ filters: { ...state.filters, ...updated } }));
-    get().filterTransactions();
+    await get().filterTransactions();
   },
 
-  resetFilters: () => {
+  resetFilters: async () => {
     set({ filters: defaultFilters });
-    get().fetchTransactions();
+    await get().fetchTransactions();
   }
 }));

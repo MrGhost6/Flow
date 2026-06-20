@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { getPrisma } from "../../database/prisma";
 import { getUserCards, getUserWallets, getUserTransactions } from "../../lib/dbHelpers";
 import { maskCardNumber } from "../../common/utils/helpers";
@@ -11,23 +12,25 @@ export async function getCards(userId: string) {
 }
 
 export async function createVirtual(userId: string, body: any) {
-  const pan = `4${Math.floor(2000 + Math.random() * 7000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
+  const pan = `4${crypto.randomInt(2000, 9999)} ${crypto.randomInt(1000, 9999)} ${crypto.randomInt(1000, 9999)} ${crypto.randomInt(1000, 9999)}`;
   const { maskedPan, last4, panHash } = maskCardNumber(pan);
   const p = getPrisma();
   if (!p) throw new Error("Database unavailable");
   const wallets = await getUserWallets(userId);
-  const card = await p.card.create({ data: { id: `card-${uuidv4().slice(0, 8)}`, walletId: wallets[0]?.id || "", userId, type: "VIRTUAL", status: "ACTIVE", provider: "VISA", maskedPan, panHash, cvvHash: "", expiryMonth: 12, expiryYear: new Date().getFullYear() + 3, cardholderName: body.cardholderName || "Cardholder", currency: body.currency as any || "USD", expiresAt: new Date(new Date().getFullYear() + 3, 11, 31) } });
+  if (!wallets.length) throw Object.assign(new Error("No wallets found; create a wallet first"), { statusCode: 400 });
+  const card = await p.card.create({ data: { id: `card-${uuidv4().slice(0, 8)}`, walletId: wallets[0].id, userId, type: "VIRTUAL", status: "ACTIVE", provider: "VISA", maskedPan, panHash, cvvHash: "", expiryMonth: 12, expiryYear: new Date().getFullYear() + 3, cardholderName: body.cardholderName || "Cardholder", currency: body.currency as any || "USD", expiresAt: new Date(new Date().getFullYear() + 3, 11, 31) } });
   await auditLog(userId, "CARD_CREATED", "CARD", `Virtual card created (${maskedPan})`);
   return { ...card, cardNumber: maskedPan };
 }
 
 export async function requestPhysical(userId: string, body: any) {
-  const pan = `5${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)} ${Math.floor(1000 + Math.random() * 9000)}`;
+  const pan = `5${crypto.randomInt(1000, 9999)} ${crypto.randomInt(1000, 9999)} ${crypto.randomInt(1000, 9999)} ${crypto.randomInt(1000, 9999)}`;
   const { maskedPan, last4, panHash } = maskCardNumber(pan);
   const p = getPrisma();
   if (!p) throw new Error("Database unavailable");
   const wallets = await getUserWallets(userId);
-  const card = await p.card.create({ data: { id: `card-${uuidv4().slice(0, 8)}`, walletId: wallets[0]?.id || "", userId, type: "PHYSICAL", status: "ACTIVE", provider: "MASTERCARD", maskedPan, panHash, cvvHash: "", expiryMonth: 12, expiryYear: new Date().getFullYear() + 4, cardholderName: "Cardholder", currency: body.currency as any || "MAD", expiresAt: new Date(new Date().getFullYear() + 4, 11, 31) } });
+  if (!wallets.length) throw Object.assign(new Error("No wallets found; create a wallet first"), { statusCode: 400 });
+  const card = await p.card.create({ data: { id: `card-${uuidv4().slice(0, 8)}`, walletId: wallets[0].id, userId, type: "PHYSICAL", status: "ACTIVE", provider: "MASTERCARD", maskedPan, panHash, cvvHash: "", expiryMonth: 12, expiryYear: new Date().getFullYear() + 4, cardholderName: "Cardholder", currency: body.currency as any || "MAD", expiresAt: new Date(new Date().getFullYear() + 4, 11, 31) } });
   await auditLog(userId, "CARD_REQUESTED", "CARD", `Physical card requested (${maskedPan})`);
   return { ...card, cardNumber: maskedPan };
 }

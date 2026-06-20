@@ -35,6 +35,16 @@ export async function create(userId: string, body: any) {
   return budget;
 }
 
+export async function update(userId: string, id: string, body: any) {
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  const data: any = {};
+  if (body.name) data.name = body.name;
+  if (body.amount) data.amount = fmtDecimal(toDecimal(body.amount));
+  if (body.period) data.period = body.period;
+  return p.budget.update({ where: { id }, data });
+}
+
 export async function remove(userId: string, id: string) {
   const p = getPrisma();
   if (!p) throw new Error("Database unavailable");

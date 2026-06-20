@@ -6,6 +6,7 @@ const router = Router();
 
 router.get("/", asyncHandler(ctrl.list));
 router.post("/", asyncHandler(ctrl.create));
+router.patch("/:id", asyncHandler(ctrl.update));
 router.delete("/:id", asyncHandler(ctrl.remove));
 
 export default router;

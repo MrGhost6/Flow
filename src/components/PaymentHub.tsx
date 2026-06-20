@@ -1,24 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Search, 
-  Plus, 
-  Bolt, 
-  Wifi, 
-  TrendingUp, 
-  ArrowRight, 
-  Calendar, 
-  Filter, 
-  CheckCircle, 
+import {
+  Search,
+  Plus,
+  CheckCircle,
   Send,
   X,
   FileText,
   AlertCircle,
-  Clock,
-  ExternalLink,
-  DollarSign,
   Briefcase,
-  ChevronDown,
   Shield,
   Info,
   Lock,
@@ -28,10 +18,6 @@ import {
   QrCode,
   Users,
   HandCoins,
-  Check,
-  Eye,
-  EyeOff,
-  Bell,
   CheckSquare
 } from 'lucide-react';
 import { Transaction, Wallet, Invoice, UserProfile } from '../types';
@@ -42,10 +28,10 @@ import { useReceiptStore } from '../stores/receiptStore';
 import { usePaymentRequestStore } from '../stores/paymentRequestStore';
 import { useQRPaymentStore } from '../stores/qrPaymentStore';
 import { useSplitBillStore } from '../stores/splitBillStore';
+import { toast } from 'react-toastify';
 import { useNotificationStore } from '../stores/notificationStore';
 
 interface PaymentHubProps {
-  onAddTransaction: (newTx: Transaction) => void;
   invoices: Invoice[];
   onAddInvoice: (newInv: Invoice) => void;
   notifications: any[];
@@ -61,7 +47,6 @@ interface QuickContact {
 }
 
 export default function PaymentHub({
-  onAddTransaction,
   invoices,
   onAddInvoice,
   notifications,
@@ -72,7 +57,7 @@ export default function PaymentHub({
 
   // Zustand hooks integration
   const { wallets, selectedWallet, fetchWallets, selectWallet, updateLimits, isLoading: loadingWallets } = useWalletStore();
-  const { transactions, fetchTransactions, searchTransactions, filterTransactions, filters, setFilters, resetFilters, isLoading: loadingTxs } = useTransactionStore();
+  const { transactions, fetchTransactions, searchTransactions, filters, setFilters } = useTransactionStore();
   const { transferFlow, validationState, confirmationState, isProcessing: sendingMoney, errorMessage, successDetails, setTransferDetails, resetFlow, validateTransfer, sendMoney } = usePaymentStore();
   const { receipt, fetchReceipt, clearReceipt, isLoading: loadingReceipt } = useReceiptStore();
 
@@ -80,7 +65,7 @@ export default function PaymentHub({
   const { requests: payRequests, isLoading: loadingRequests, fetchRequests, createRequest, acceptRequest, declineRequest, cancelRequest } = usePaymentRequestStore();
   const { currentQR, qrPayloadString, scannedQR, isLoading: loadingQR, generateQR, validateQR, payQR, clearScanState } = useQRPaymentStore();
   const { bills: splitBills, isLoading: loadingSplits, fetchBills, createSplitBill, paySplitShare } = useSplitBillStore();
-  const { notifications: systemNotifs, fetchNotifications, markAsRead: readNotif, markAllAsRead: readAllNotifs } = useNotificationStore();
+  const { fetchNotifications } = useNotificationStore();
 
   // Local state managers for Step 8 features
   const [p2pUser, setP2pUser] = useState('');
@@ -211,8 +196,8 @@ export default function PaymentHub({
   // Secure PIN verification submit
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (verificationPin !== '1337' && verificationPin !== '2026') {
-      setPinError('Invalid safety PIN signature. Bypassed with demo codes: 1337 or 2026.');
+    if (verificationPin !== '1337') {
+      setPinError('Invalid safety PIN signature.');
       return;
     }
     
@@ -220,8 +205,8 @@ export default function PaymentHub({
     const ok = await sendMoney();
     if (ok) {
       // Clear variables on success
-      fetchWallets();
-      fetchAudits();
+      await fetchWallets();
+      await fetchAudits();
       setShowPinScreen(false);
       
       // Inject alert notification
@@ -252,8 +237,8 @@ export default function PaymentHub({
     
     if (modified) {
       setLimitsMessage('Vault transaction cap rules updated and sealed.');
-      fetchWallets();
-      fetchAudits();
+      await fetchWallets();
+      await fetchAudits();
       setTimeout(() => {
         setSelectedWalletForLimits(null);
         setLimitsMessage(null);
@@ -266,7 +251,7 @@ export default function PaymentHub({
   // Open transaction detail and pre-fetch receipt
   const handleSelectTransaction = async (tx: ExtendedTransaction) => {
     setSelectedTx(tx);
-    fetchReceipt(tx.id);
+    await fetchReceipt(tx.id);
   };
 
   // Compliant export invoice creator handler
@@ -277,7 +262,7 @@ export default function PaymentHub({
     const hoursNum = parseFloat(invHours) || 40;
     const rateNum = parseFloat(invRate) || 45;
     const uniqueId = `inv-${Date.now()}`;
-    const formattedNum = `INV-2026-00${invoices.length + 3}`;
+    const formattedNum = `INV-2026-${String(invoices.length + 1).padStart(3, '0')}`;
 
     const newInvoice: Invoice = {
       id: uniqueId,
@@ -319,15 +304,15 @@ export default function PaymentHub({
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2">
         <div>
           <p className="text-[#00E0C7] font-bold tracking-[0.2em] uppercase text-[10px] mb-1.5 font-mono">Financial Core</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-none mb-1">Wallets & Transfers</h1>
-          <p className="text-xs sm:text-sm text-gray-400 font-medium mt-1">Real-time balances, pre-flight internal transfers, and compliance audit trail logs.</p>
+          <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.02em] mb-1">Wallets & Transfers</h1>
+          <p className="text-[#8a919f] max-w-2xl">Real-time balances, pre-flight internal transfers, and compliance audit trail logs.</p>
         </div>
 
         {/* Global Nav Tunnels */}
         <div className="flex flex-wrap gap-1.5 bg-white/[0.02] border border-white/5 p-1 rounded-full select-none justify-start shrink-0">
           <button
             onClick={() => setActiveSubTab('overview')}
-            className={`px-4.5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
+            className={`px-5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
               activeSubTab === 'overview'
                 ? 'bg-white/10 text-[#00E0C7] shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -340,22 +325,22 @@ export default function PaymentHub({
               setActiveSubTab('requests');
               fetchRequests();
             }}
-            className={`px-4.5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent flex items-center gap-1 ${
+            className={`px-5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent flex items-center gap-1 ${
               activeSubTab === 'requests'
                 ? 'bg-white/10 text-[#00E0C7] shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
           >
             P2P Requests
-            {payRequests.filter(r => r.status === 'pending' && r.receiver_user_id === 'u-1').length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse block" />
+            {payRequests.filter(r => r.status === 'PENDING' && r.receiver_user_id === 'u-1').length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse block" aria-label="Pending requests" />
             )}
           </button>
           <button
             onClick={() => {
               setActiveSubTab('qr');
             }}
-            className={`px-4.5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
+            className={`px-5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
               activeSubTab === 'qr'
                 ? 'bg-white/10 text-[#00E0C7] shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -368,7 +353,7 @@ export default function PaymentHub({
               setActiveSubTab('splits');
               fetchBills();
             }}
-            className={`px-4.5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
+            className={`px-5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
               activeSubTab === 'splits'
                 ? 'bg-white/10 text-[#00E0C7] shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -378,7 +363,7 @@ export default function PaymentHub({
           </button>
           <button
             onClick={() => setActiveSubTab('invoices')}
-            className={`px-4.5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
+            className={`px-5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
               activeSubTab === 'invoices'
                 ? 'bg-white/10 text-[#00E0C7] shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -391,7 +376,7 @@ export default function PaymentHub({
               setActiveSubTab('audits');
               fetchAudits();
             }}
-            className={`px-4.5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
+            className={`px-5 py-2 rounded-full text-[10px] font-bold font-mono tracking-wider uppercase transition-all duration-300 cursor-pointer border-none bg-transparent ${
               activeSubTab === 'audits'
                 ? 'bg-white/10 text-[#00E0C7] shadow-lg'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -426,7 +411,7 @@ export default function PaymentHub({
                 {wallets.length === 0 ? (
                   // Skels
                   [1,2,3].map(n => (
-                    <div key={n} className="bg-[#131722]/80 h-36 rounded-3xl border border-white/5 animate-pulse" />
+                    <div key={n} className="bg-[#182029]/60 h-36 rounded-3xl border border-white/5 animate-pulse" />
                   ))
                 ) : (
                   wallets.map((w) => {
@@ -441,7 +426,7 @@ export default function PaymentHub({
                         className={`p-5 rounded-3xl cursor-pointer transition-all duration-300 select-none relative overflow-hidden group border ${
                           selectedWallet?.id === w.id 
                             ? 'bg-gradient-to-br from-[#192435] to-[#0d1624] border-[#00E0C7]/40 shadow-xl shadow-black/40 ring-1 ring-[#00E0C7]/10' 
-                            : 'bg-[#131722]/80 hover:bg-[#131722] border-white/5 hover:border-white/10'
+                            : 'bg-[#182029]/60 hover:bg-[#131722] border-white/5 hover:border-white/10'
                         }`}
                       >
                         {/* Status Label Pill */}
@@ -483,7 +468,7 @@ export default function PaymentHub({
 
             {/* Selected Wallet Limits / Activity Rules Drawer */}
             {selectedWallet && (
-              <section className="p-6 bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 hover:border-white/10 transition-all duration-300 space-y-5">
+              <section className="p-6 bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 hover:border-[#8a919f]/20 hover:shadow-[0_0_20px_rgba(165,200,255,0.15)] transition-all duration-300 space-y-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
                   <div>
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -530,7 +515,7 @@ export default function PaymentHub({
             )}
 
             {/* TRANSACTIONS HISTORY TABLE LIST */}
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 hover:border-white/10 transition-all duration-300 shadow-xl overflow-hidden">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 hover:border-[#8a919f]/20 transition-all duration-300 shadow-xl overflow-hidden">
               <div className="p-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-white leading-none">Global Ledger History</h2>
@@ -593,7 +578,7 @@ export default function PaymentHub({
 
               {/* Transaction list render */}
               <div className="overflow-x-auto w-full">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse" aria-label="Transaction history">
                   <thead>
                     <tr className="bg-white/[0.01] border-b border-white/5 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
                       <th className="px-6 py-4">Recipient / Sender</th>
@@ -612,10 +597,10 @@ export default function PaymentHub({
                       </tr>
                     ) : (
                       transactions.map((tx) => {
-                        const isExp = tx.type === 'expense';
-                        const isPend = tx.status === 'pending';
-                        const isProc = tx.status === 'processing';
-                        const isFail = tx.status === 'failed';
+                        const isExp = tx.type === 'EXPENSE';
+                        const isPend = tx.status === 'PENDING';
+                        const isProc = tx.status === 'PROCESSING';
+                        const isFail = tx.status === 'FAILED';
                         const sym = getSymbolByCode(tx.currency);
 
                         return (
@@ -658,7 +643,7 @@ export default function PaymentHub({
                               <div className="flex items-center gap-1.5">
                                 <span className={`w-1.5 h-1.5 rounded-full ${
                                   isFail ? 'bg-red-500' : isPend ? 'bg-amber-400 animate-pulse' : isProc ? 'bg-blue-400 animate-pulse' : 'bg-[#00E0C7]'
-                                }`} />
+                                }`} aria-hidden="true" />
                                 <span className={`text-[9px] font-mono font-bold uppercase ${
                                   isFail ? 'text-red-400' : isPend ? 'text-amber-400' : isProc ? 'text-blue-400' : 'text-[#00E0C7]'
                                 }`}>
@@ -687,7 +672,7 @@ export default function PaymentHub({
           <div className="col-span-12 lg:col-span-4 space-y-6">
             
             {/* Direct Send Money Panel */}
-            <section className="bg-gradient-to-tr from-[#131722]/80 to-[#192435]/50 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 shadow-xl space-y-5">
+            <section className="bg-gradient-to-tr from-[#131722]/80 to-[#192435]/50 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300 shadow-xl space-y-5">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <Send className="w-5 h-5 text-[#00E0C7]" />
@@ -698,13 +683,16 @@ export default function PaymentHub({
 
               {/* Direct links contacts horizontal selector */}
               <div className="space-y-2">
-                <label className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Quick Select Recipient</label>
+                <p className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Quick Select Recipient</p>
                 <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none select-none">
                   {contacts.map((contact) => (
                     <div 
                       key={contact.id}
                       onClick={() => setTransferDetails({ recipient: contact.email })}
-                      className={`flex-shrink-0 flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition-all ${
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setTransferDetails({ recipient: contact.email }) }}
+                      role="button"
+                      tabIndex={0}
+                      className={`flex-shrink-0 flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-[#00E0C7] focus-visible:outline-none ${
                         transferFlow.recipient === contact.email
                           ? 'bg-[#00E0C7]/10 border-[#00E0C7]/40 font-bold'
                           : 'bg-white/[0.02] border-white/5 hover:bg-white/5 hover:border-white/10'
@@ -725,7 +713,7 @@ export default function PaymentHub({
                 
                 {/* Recipient Input */}
                 <div className="space-y-1.5">
-                  <label className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Recipient email / phone</label>
+                  <label htmlFor="transfer-recipient-input" className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Recipient email / phone</label>
                   <input
                     type="text"
                     required
@@ -733,13 +721,14 @@ export default function PaymentHub({
                     onChange={(e) => setTransferDetails({ recipient: e.target.value })}
                     placeholder="e.g. yassine@benjellouncorp.ma"
                     className="w-full bg-[#0c121c] py-3 px-4 border border-white/5 focus:border-[#00E0C7] hover:border-white/10 rounded-2xl text-white outline-none focus:ring-0 text-xs font-mono transition-colors"
+                    id="transfer-recipient-input"
                   />
                 </div>
 
                 {/* Amount and select currency */}
                 <div className="grid grid-cols-12 gap-2">
                   <div className="col-span-8 space-y-1.5">
-                    <label className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Amount</label>
+                    <label htmlFor="transfer-amount-input" className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Amount</label>
                     <input
                       type="number"
                       required
@@ -747,14 +736,16 @@ export default function PaymentHub({
                       onChange={(e) => setTransferDetails({ amount: e.target.value })}
                       placeholder="0.00"
                       className="w-full bg-[#0c121c] py-3 px-4 border border-white/5 focus:border-[#00E0C7] hover:border-white/10 rounded-2xl text-white outline-none text-xs font-mono transition-colors"
+                      id="transfer-amount-input"
                     />
                   </div>
                   <div className="col-span-4 space-y-1.5">
-                    <label className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Currency</label>
+                    <label htmlFor="transfer-currency-select" className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Currency</label>
                     <select
                       value={transferFlow.currency}
                       onChange={(e) => setTransferDetails({ currency: e.target.value })}
                       className="w-full bg-[#0c121c] py-3 px-2 border border-white/5 hover:border-white/10 rounded-2xl text-white outline-none text-xs font-mono transition-colors focus:border-[#00E0C7]"
+                      id="transfer-currency-select"
                     >
                       <option value="MAD">MAD (DH)</option>
                       <option value="EUR">EUR (€)</option>
@@ -765,7 +756,7 @@ export default function PaymentHub({
 
                 {/* Display pre-validation warnings or error messages */}
                 {errorMessage && (
-                  <div className="p-3 bg-red-400/5 border border-red-500/25 rounded-2xl text-[10px] text-red-400 flex items-start gap-1.5">
+                  <div role="alert" className="p-3 bg-red-400/5 border border-red-500/25 rounded-2xl text-[10px] text-red-400 flex items-start gap-1.5">
                     <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
                     <span>{errorMessage}</span>
                   </div>
@@ -783,7 +774,7 @@ export default function PaymentHub({
             </section>
 
             {/* Global Compliance SEPA / Wires instructions card */}
-            <section className="bg-[#131722]/80 rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 shadow-md space-y-3">
+            <section className="bg-[#182029]/60 rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300 shadow-md space-y-3">
               <div className="flex items-center gap-2 text-blue-400">
                 <Shield className="w-5 h-5 shrink-0" />
                 <h4 className="text-xs font-mono font-bold uppercase tracking-widest">Compliant SEPA Vault Router</h4>
@@ -812,7 +803,7 @@ export default function PaymentHub({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="requests-zone">
           {/* Create a request form (lg:col-span-5) */}
           <div className="col-span-12 lg:col-span-5 space-y-6">
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300">
               <span className="text-[9px] font-mono font-bold text-[#00E0C7] tracking-widest block mb-2 uppercase">Request Money</span>
               <h3 className="text-xl font-bold text-white mb-1">P2P Peer Request</h3>
               <p className="text-xs text-gray-400 mb-5">Instantly request funds from other registered FLOW platform users inside Morocco and MENA.</p>
@@ -835,7 +826,7 @@ export default function PaymentHub({
                 e.preventDefault();
                 setP2pError(null);
                 setP2pOverlaySuccess(null);
-                if (!p2pUser.trim() || !p2pAmount) {
+                if (!p2pUser.trim() || !p2pAmount || Number(p2pAmount) <= 0) {
                   setP2pError("A target recipient identifiers and amount are required.");
                   return;
                 }
@@ -857,7 +848,7 @@ export default function PaymentHub({
                 
                 {/* Popular Moroccan Contacts suggestions */}
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest block mb-2">Moroccan Users Quick Select</label>
+                  <p className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest block mb-2">Moroccan Users Quick Select</p>
                   <div className="grid grid-cols-3 gap-2">
                     <button 
                       type="button"
@@ -887,33 +878,36 @@ export default function PaymentHub({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Recipient identifier</label>
+                  <label htmlFor="p2p-recipient-input" className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Recipient identifier</label>
                   <input 
                     type="text" 
                     placeholder="E.g., kenza@tazi.design or phone"
                     value={p2pUser}
                     onChange={(e) => setP2pUser(e.target.value)}
                     className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all placeholder:text-gray-600 font-mono"
+                    id="p2p-recipient-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2">
-                    <label className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Request Amount</label>
+                    <label htmlFor="p2p-amount-input" className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Request Amount</label>
                     <input 
                       type="number" 
                       placeholder="Amount" 
                       value={p2pAmount}
                       onChange={(e) => setP2pAmount(e.target.value)}
                       className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all font-mono"
+                      id="p2p-amount-input"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Currency</label>
+                    <label htmlFor="p2p-currency-select" className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Currency</label>
                     <select 
                       value={p2pCurrency}
                       onChange={(e) => setP2pCurrency(e.target.value)}
                       className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all font-mono"
+                      id="p2p-currency-select"
                     >
                       <option value="MAD">MAD (DH)</option>
                       <option value="USD">USD ($)</option>
@@ -923,20 +917,21 @@ export default function PaymentHub({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Notes / Purpose</label>
+                  <label htmlFor="p2p-notes-input" className="text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Notes / Purpose</label>
                   <input 
                     type="text" 
                     placeholder="E.g., Creative design consult bill"
                     value={p2pNote}
                     onChange={(e) => setP2pNote(e.target.value)}
                     className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all placeholder:text-gray-600"
+                    id="p2p-notes-input"
                   />
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={loadingRequests}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#00E0C7] to-[#00b9a3] hover:from-[#00ffd2] hover:to-[#00ffd2] text-black font-extrabold text-[11px] font-mono uppercase tracking-wider rounded-xl transition-all hover:scale-102 flex items-center justify-center gap-2 cursor-pointer border-none shadow-lg shadow-[#00E0C7]/10 disabled:opacity-50"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#00E0C7] to-[#00b9a3] hover:from-[#00ffd2] hover:to-[#00ffd2] text-black font-extrabold text-[11px] font-mono uppercase tracking-wider rounded-xl transition-all hover:scale-100 flex items-center justify-center gap-2 cursor-pointer border-none shadow-lg shadow-[#00E0C7]/10 disabled:opacity-50"
                 >
                   <HandCoins className="w-4 h-4" />
                   <span>{loadingRequests ? 'Syncing Ledger...' : 'Dispatch P2P Request'}</span>
@@ -949,7 +944,7 @@ export default function PaymentHub({
           <div className="col-span-12 lg:col-span-7 space-y-6">
             
             {/* INCOMING REQUESTS requiring approval */}
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300">
               <span className="text-[9px] font-mono font-bold text-[#FF8552] tracking-widest block mb-2 uppercase">Action Required</span>
               <h3 className="text-xl font-bold text-white mb-1">Incoming Requests received</h3>
               <p className="text-xs text-gray-400 mb-5">Unsettled money requests sent to you by partners or services.</p>
@@ -972,8 +967,8 @@ export default function PaymentHub({
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-bold text-white font-mono">{req.requesterName || "Yassine B."}</span>
                             <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full uppercase font-bold ${
-                              req.status === 'pending' ? 'bg-amber-400/10 text-amber-400' :
-                              req.status === 'accepted' ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-500'
+                              req.status === 'PENDING' ? 'bg-amber-400/10 text-amber-400' :
+                              req.status === 'PAID' ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-500'
                             }`}>{req.status}</span>
                           </div>
                           <p className="text-xs text-gray-300 italic">“{req.note}”</p>
@@ -986,7 +981,7 @@ export default function PaymentHub({
                             <span className="text-[9px] text-gray-500">Free internal processing</span>
                           </div>
                           
-                          {req.status === 'pending' && (
+                          {req.status === 'PENDING' && (
                             <div className="flex gap-2">
                               <button
                                 onClick={async () => {
@@ -1005,7 +1000,7 @@ export default function PaymentHub({
                               </button>
                               <button
                                 onClick={async () => {
-                                  if(confirm("Are you sure you want to decline this request?")) {
+                                  if(window.confirm("Are you sure you want to decline this request?")) {
                                     const ans = await declineRequest(req.id);
                                     if(ans.success) setP2pOverlaySuccess("Declined payment request.");
                                   }
@@ -1025,7 +1020,7 @@ export default function PaymentHub({
             </section>
 
             {/* OUTGOING REQUESTS sent by you */}
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300">
               <span className="text-[9px] font-mono font-bold text-gray-400 tracking-widest block mb-2 uppercase">Outbound ledger</span>
               <h3 className="text-xl font-bold text-white mb-1">Outgoing requests history</h3>
               <p className="text-xs text-gray-400 mb-5">Incoming transfers you have queried, tracking payment validations from clients.</p>
@@ -1044,9 +1039,8 @@ export default function PaymentHub({
                           <p className="text-xs font-bold text-white flex items-center gap-1.5">
                             <span>To: {req.receiverName || "Yassine B."}</span>
                             <span className={`text-[8px] tracking-widest font-mono uppercase px-1.5 py-0.5 rounded ${
-                              req.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400' :
-                              req.status === 'declined' ? 'bg-red-500/10 text-red-400' :
-                              req.status === 'cancelled' ? 'bg-gray-500/10 text-gray-400' : 'bg-amber-500/10 text-amber-400 animate-pulse'
+                              req.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400' :
+                              req.status === 'CANCELLED' ? 'bg-gray-500/10 text-gray-400' : 'bg-amber-500/10 text-amber-400 animate-pulse'
                             }`}>{req.status}</span>
                           </p>
                           <p className="text-[10px] text-gray-400 truncate max-w-xs">{req.note}</p>
@@ -1054,7 +1048,7 @@ export default function PaymentHub({
 
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-bold font-mono text-white">{symb}{req.amount}</span>
-                          {req.status === 'pending' && (
+                          {req.status === 'PENDING' && (
                             <button
                               onClick={async () => {
                                 const ans = await cancelRequest(req.id);
@@ -1083,7 +1077,7 @@ export default function PaymentHub({
           <div className="col-span-12 lg:col-span-5 space-y-6">
             
             {/* Left selector menu */}
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300">
               <span className="text-[9px] font-mono font-bold text-[#00E0C7] tracking-widest block mb-1 uppercase">Instant QR Service</span>
               <h3 className="text-xl font-bold text-white mb-4">QR Payment Engine</h3>
               
@@ -1107,14 +1101,14 @@ export default function PaymentHub({
               </div>
 
               {qrErrorMessage && (
-                <div className="p-3 mb-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center gap-2">
+                <div role="alert" className="p-3 mb-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl flex items-center gap-2">
                   <AlertCircle className="w-4 h-4" />
                   <span>{qrErrorMessage}</span>
                 </div>
               )}
 
               {qrSuccessMessage && (
-                <div className="p-4 mb-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
+                <div role="alert" className="p-4 mb-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 shrink-0" />
                   <span>{qrSuccessMessage}</span>
                 </div>
@@ -1153,13 +1147,14 @@ export default function PaymentHub({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase block">Scanned Token Hash</label>
+                    <label htmlFor="scan-token-input" className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase block">Scanned Token Hash</label>
                     <input
                       type="text"
                       placeholder="Paste flow:pay:... token hash here"
                       value={scanInputValue}
                       onChange={(e) => setScanInputValue(e.target.value)}
                       className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all font-mono"
+                      id="scan-token-input"
                     />
                   </div>
 
@@ -1183,11 +1178,12 @@ export default function PaymentHub({
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] font-mono font-bold text-gray-400 uppercase max-w-xs block mb-1">Currency</label>
+                      <label htmlFor="qr-currency-select" className="text-[10px] font-mono font-bold text-gray-400 uppercase max-w-xs block mb-1">Currency</label>
                       <select
                         value={qrCurrencyInput}
                         onChange={(e) => setQrCurrencyInput(e.target.value)}
                         className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all font-mono"
+                        id="qr-currency-select"
                       >
                         <option value="MAD">MAD (DH)</option>
                         <option value="USD">USD ($)</option>
@@ -1195,13 +1191,14 @@ export default function PaymentHub({
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-mono font-bold text-gray-400 uppercase max-w-xs block mb-1">Set Amount</label>
+                      <label htmlFor="qr-amount-input" className="text-[10px] font-mono font-bold text-gray-400 uppercase max-w-xs block mb-1">Set Amount</label>
                       <input
                         type="number"
                         placeholder="E.g., 20"
                         value={qrAmountInput}
                         onChange={(e) => setQrAmountInput(e.target.value)}
                         className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all font-mono"
+                        id="qr-amount-input"
                       />
                     </div>
                   </div>
@@ -1228,7 +1225,7 @@ export default function PaymentHub({
 
           <div className="col-span-12 lg:col-span-7">
             {/* Right Display area (displays scanned info or display QR) */}
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 h-full flex flex-col justify-center min-h-[400px]">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300 h-full flex flex-col justify-center min-h-[400px]">
               {qrActiveView === 'scan' ? (
                 // SCANNED INFO REVIEW PANELS
                 scannedQR ? (
@@ -1310,12 +1307,12 @@ export default function PaymentHub({
 
                     {/* QR Mock graphic with custom bounding frame layout */}
                     <div className="relative p-6 bg-white inline-block rounded-3xl mx-auto shadow-2xl">
-                      <div className="absolute inset-0 border-4 border-[#00E0C7] rounded-3xl animate-pulse pointer-events-none scale-102" />
+                      <div className="absolute inset-0 border-4 border-[#00E0C7] rounded-3xl animate-pulse pointer-events-none scale-100" />
                       <div className="w-44 h-44 bg-gradient-to-br from-[#10141d] to-black rounded-xl p-3 flex flex-col items-center justify-center flex-wrap shrink-0">
                         {/* High-tech tech vector code mimic */}
-                        <div className="grid grid-cols-4 gap-2.5 w-full h-full max-w-[130px] max-h-[130px]">
+                        <div className="grid grid-cols-4 gap-2.5 w-full h-full max-w-[130px] max-h-[130px]" role="img" aria-label="Dynamic QR payment token">
                           {Array.from({ length: 16 }).map((_, i) => (
-                            <div key={i} className={`rounded ${
+                            <div key={i} aria-hidden="true" className={`rounded ${
                               (i * 3 + 7) % 5 === 0 || i === 0 || i === 3 || i === 12 ? 'bg-[#00E0C7]' : 'bg-white/10'
                             }`} />
                           ))}
@@ -1351,7 +1348,7 @@ export default function PaymentHub({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="splits-zone">
           {/* Split check creation form (lg:col-span-5) */}
           <div className="col-span-12 lg:col-span-5 space-y-6">
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300">
               <span className="text-[9px] font-mono font-bold text-[#00E0C7] tracking-widest block mb-1 uppercase text-left">Peer Distribution</span>
               <h3 className="text-xl font-bold text-white mb-1">Group Bill Splitting</h3>
               <p className="text-xs text-gray-400 mb-5">Distribute bills equally or with bespoke shares securely across a selected ring of contacts.</p>
@@ -1401,33 +1398,36 @@ export default function PaymentHub({
                 }
               }} className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-mono font-bold text-gray-400 uppercase block mb-1.5">Split Bill Title</label>
+                  <label htmlFor="split-title-input" className="text-[10px] font-mono font-bold text-gray-400 uppercase block mb-1.5">Split Bill Title</label>
                   <input
                     type="text"
                     placeholder="E.g., Casablanca Surf Dinner"
                     value={splitTitleInput}
                     onChange={(e) => setSplitTitleInput(e.target.value)}
                     className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none transition-all"
+                    id="split-title-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2">
-                    <label className="text-[10px] font-mono font-bold text-gray-400 uppercase block mb-1.5 font-mono">Gross Bill Total</label>
+                    <label htmlFor="split-total-input" className="text-[10px] font-mono font-bold text-gray-400 uppercase block mb-1.5">Gross Bill Total</label>
                     <input
                       type="number"
                       placeholder="Total check amount"
                       value={splitTotalInput}
                       onChange={(e) => setSplitTotalInput(e.target.value)}
                       className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none font-mono"
+                      id="split-total-input"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-mono font-bold text-gray-400 uppercase block mb-1.5 font-mono">Cur</label>
+                    <label htmlFor="split-currency-select" className="text-[10px] font-mono font-bold text-gray-400 uppercase block mb-1.5">Cur</label>
                     <select
                       value={splitCurrencyInput}
                       onChange={(e) => setSplitCurrencyInput(e.target.value)}
                       className="w-full bg-[#182029]/80 border border-white/5 focus:border-[#00E0C7]/30 p-3 rounded-xl text-xs text-white outline-none font-mono"
+                      id="split-currency-select"
                     >
                       <option value="MAD">MAD (DH)</option>
                       <option value="USD">USD ($)</option>
@@ -1472,7 +1472,7 @@ export default function PaymentHub({
                             </div>
                           </div>
                           
-                          <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center font-bold text-[10px] ${
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center font-bold text-[10px] ${
                             active ? 'bg-[#00E0C7] border-none text-black' : 'border-white/20 text-transparent'
                           }`}>
                             ✓
@@ -1495,9 +1495,9 @@ export default function PaymentHub({
                 <button
                   type="submit"
                   disabled={loadingSplits}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#00E0C7] to-[#00b9a3] hover:from-[#00ffd2] hover:to-[#00ffd2] text-black font-extrabold text-[11px] font-mono uppercase tracking-wider rounded-xl transition-all hover:scale-102 flex items-center justify-center gap-1.5 cursor-pointer border-none shadow-lg shadow-[#00E0C7]/15 disabled:opacity-50"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#00E0C7] to-[#00b9a3] hover:from-[#00ffd2] hover:to-[#00ffd2] text-black font-extrabold text-[11px] font-mono uppercase tracking-wider rounded-xl transition-all hover:scale-100 flex items-center justify-center gap-1.5 cursor-pointer border-none shadow-lg shadow-[#00E0C7]/15 disabled:opacity-50"
                 >
-                  <Users className="w-4.5 h-4.5" />
+                  <Users className="w-5 h-5" />
                   <span>{loadingSplits ? "Splitting Ledger..." : "Split Bill with Friends"}</span>
                 </button>
               </form>
@@ -1507,7 +1507,7 @@ export default function PaymentHub({
           <div className="col-span-12 lg:col-span-7 space-y-6">
             
             {/* Active splits dashboards */}
-            <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300">
+            <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300">
               <span className="text-[9px] font-mono font-bold text-[#00E0C7] tracking-widest block mb-2 uppercase">Progress tracker</span>
               <h3 className="text-xl font-bold text-white mb-1">Active split boards</h3>
               <p className="text-xs text-gray-400 mb-5">Collaborative bill distributions created on the FLOW platform.</p>
@@ -1522,8 +1522,8 @@ export default function PaymentHub({
                     const symb = getSymbolByCode(bill.currency);
                     
                     // Count participants progress
-                    const totalSharesCount = bill.participants.length + 1; // including creator or total contributors
-                    const paidSharesCount = bill.participants.filter(p => p.status === 'paid').length + 1; // Creator share is paid automatically
+                    const totalSharesCount = bill.participants.length;
+                    const paidSharesCount = bill.participants.filter(p => p.status === 'paid').length;
                     const progressPercent = Math.round((paidSharesCount / totalSharesCount) * 100);
 
                     // Find current user share status
@@ -1632,7 +1632,7 @@ export default function PaymentHub({
       {/* SUBTAB 2: INVOICES (LEGALLY IMMUTABLE VAT ZERO EXEMPTIONS COMPLIANCE SCREEN) */}
       {activeSubTab === 'invoices' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="invoices-zone">
-          <section className="lg:col-span-8 bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 sm:p-8 hover:border-white/10 transition-all duration-300 shadow-xl space-y-6">
+          <section className="lg:col-span-8 bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 sm:p-8 hover:border-white/10 transition-all duration-300 shadow-xl space-y-6">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-white leading-none">Export Invoices Registry</h3>
@@ -1640,7 +1640,7 @@ export default function PaymentHub({
               </div>
               <button
                 onClick={() => setShowInvoiceCreator(true)}
-                className="px-4 py-2 bg-[#00E0C7] hover:bg-[#00cfa7] text-black font-bold text-[10px] font-mono uppercase tracking-wider rounded-xl transition-all hover:scale-102 flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-[#00E0C7] hover:bg-[#00cfa7] text-black font-bold text-[10px] font-mono uppercase tracking-wider rounded-xl transition-all hover:scale-100 flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Export Invoice</span>
@@ -1654,7 +1654,7 @@ export default function PaymentHub({
                 return (
                   <div 
                     key={inv.id} 
-                    className="p-4.5 rounded-2xl bg-[#182029]/30 hover:bg-[#182029]/50 border border-white/5 hover:border-white/10 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                    className="p-5 rounded-2xl bg-[#182029]/30 hover:bg-[#182029]/50 border border-white/5 hover:border-white/10 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
                   >
                     <div className="flex items-center space-x-3.5 min-w-0">
                       <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-gray-400 group-hover:text-[#00E0C7] group-hover:bg-[#00E0C7]/5 transition-colors shrink-0">
@@ -1698,7 +1698,7 @@ export default function PaymentHub({
 
           {/* Business sidebars */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 hover:border-white/10 transition-all duration-300 shadow-xl space-y-4">
+            <div className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 hover:border-white/10 transition-all duration-300 shadow-xl space-y-4">
               <div className="flex items-center gap-2 text-purple-400">
                 <Briefcase className="w-5 h-5 shrink-0 text-[#7B5CFF]" />
                 <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-[#7B5CFF]">Moroccan Exporter Guard</h4>
@@ -1714,7 +1714,7 @@ export default function PaymentHub({
       {/* SUBTAB 3: IMMUTABLE GENERAL AUDIT SYSTEM RECORDS */}
       {activeSubTab === 'audits' && (
         <div className="grid grid-cols-1 gap-6 text-xs" id="audits-zone">
-          <section className="bg-[#131722]/80 backdrop-blur-2xl rounded-[32px] border border-white/5 p-6 sm:p-8 hover:border-white/10 transition-all duration-300 shadow-xl space-y-4">
+          <section className="bg-[#182029]/60 backdrop-blur-2xl rounded-3xl border border-[#8a919f]/10 p-6 sm:p-8 hover:border-white/10 transition-all duration-300 shadow-xl space-y-4">
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Shield className="w-5 h-5 text-red-400" />
@@ -1724,7 +1724,7 @@ export default function PaymentHub({
             </div>
 
             <div className="overflow-x-auto w-full">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse" aria-label="Compliance audit trail">
                 <thead>
                   <tr className="bg-white/[0.01] border-b border-white/5 text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest">
                     <th className="px-5 py-3.5">Severity</th>
@@ -1804,24 +1804,26 @@ export default function PaymentHub({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Daily Clearing Limit ({selectedWalletForLimits.currency})</label>
+                <label htmlFor="daily-limit-input" className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Daily Clearing Limit ({selectedWalletForLimits.currency})</label>
                 <input
                   type="number"
                   required
                   value={customDailyLimit}
                   onChange={(e) => setCustomDailyLimit(e.target.value)}
                   className="w-full bg-[#131722] py-3 px-4 border border-white/5 focus:border-[#00E0C7] rounded-xl text-white outline-none font-mono text-xs"
+                  id="daily-limit-input"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Monthly Clearing Ceiling ({selectedWalletForLimits.currency})</label>
+                <label htmlFor="monthly-ceiling-input" className="text-gray-500 font-mono text-[9px] uppercase tracking-wider block">Monthly Clearing Ceiling ({selectedWalletForLimits.currency})</label>
                 <input
                   type="number"
                   required
                   value={customMonthlyLimit}
                   onChange={(e) => setCustomMonthlyLimit(e.target.value)}
                   className="w-full bg-[#131722] py-3 px-4 border border-white/5 focus:border-[#00E0C7] rounded-xl text-white outline-none font-mono text-xs"
+                  id="monthly-ceiling-input"
                 />
               </div>
 
@@ -1895,7 +1897,7 @@ export default function PaymentHub({
                   <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
                     <span className="text-gray-500">Clearing Amount</span>
                     <span className="text-[#00E0C7] font-mono font-bold text-sm">
-                      {getSymbolByCode(transferFlow.currency)}{parseFloat(transferFlow.amount).toLocaleString()}
+                      {getSymbolByCode(transferFlow.currency)}{parseFloat(transferFlow.amount || '0').toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px] text-gray-500">
@@ -1988,7 +1990,7 @@ export default function PaymentHub({
                 <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/25 text-red-400 flex items-center justify-center mx-auto">
                   <AlertCircle className="w-6 h-6" />
                 </div>
-                <div>
+                <div role="alert">
                   <p className="text-sm font-bold text-white">Clearing Rejected</p>
                   <p className="text-xs text-red-400 font-mono mt-2 p-2 bg-red-500/5 border border-red-500/10 rounded-xl leading-normal">
                     {errorMessage}
@@ -2042,9 +2044,9 @@ export default function PaymentHub({
                   <div className="p-4 bg-white/5 border border-white/5 rounded-3xl text-center space-y-1">
                     <span className="text-gray-400 text-[10px] uppercase font-mono tracking-wider">cleared holding amount</span>
                     <h2 className={`text-2xl font-bold font-mono ${
-                      receipt.transaction.type === 'expense' ? 'text-white' : 'text-[#00E0C7]'
+                      receipt.transaction.type === 'EXPENSE' ? 'text-white' : 'text-[#00E0C7]'
                     }`}>
-                      {receipt.transaction.type === 'expense' ? '-' : '+'}{getSymbolByCode(receipt.transaction.currency)}{receipt.transaction.amount.toLocaleString()}
+                      {receipt.transaction.type === 'EXPENSE' ? '-' : '+'}{getSymbolByCode(receipt.transaction.currency)}{receipt.transaction.amount.toLocaleString()}
                     </h2>
                     <span className="inline-block px-2 py-0.5 bg-[#00E0C7]/10 text-[#00E0C7] border border-[#00E0C7]/15 rounded font-mono text-[8px] uppercase tracking-wide">
                       {receipt.transaction.status}
@@ -2052,7 +2054,7 @@ export default function PaymentHub({
                   </div>
 
                   {/* Complete data grid */}
-                  <div className="space-y-2 text-[10px] bg-[#131722] p-4 rounded-2xl border border-white/5 space-y-2.5">
+                  <div className="text-[10px] bg-[#131722] p-4 rounded-2xl border border-white/5 space-y-2.5">
                     <div className="flex justify-between">
                       <span className="text-gray-500 uppercase font-mono">Reference</span>
                       <span className="text-white font-mono tracking-wider">{receipt.transaction.reference}</span>
@@ -2086,14 +2088,14 @@ export default function PaymentHub({
                   {/* Actions export/share placeholders */}
                   <div className="flex gap-2 text-center text-[10px]">
                     <button
-                      onClick={() => alert('Official Ledger PDF stamp requested. Sending copy straight to anas@flow.io')}
-                      className="flex-1 py-2.5 bg-white text-black font-semibold font-mono uppercase text-[9px] tracking-wider rounded-xl hover:scale-102 flex items-center justify-center gap-1 cursor-pointer border-none"
+                      onClick={() => toast.info('Official Ledger PDF stamp requested. Sending copy straight to anas@flow.io')}
+                      className="flex-1 py-2.5 bg-white text-black font-semibold font-mono uppercase text-[9px] tracking-wider rounded-xl hover:scale-100 flex items-center justify-center gap-1 cursor-pointer border-none"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Export PDF</span>
                     </button>
                     <button
-                      onClick={() => alert('Secure URL dispatch token generated: share-link copied to clip.')}
+                      onClick={() => toast.success('Secure URL dispatch token generated: share-link copied to clip.')}
                       className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-white font-semibold font-mono uppercase text-[9px] tracking-wider rounded-xl flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Share2 className="w-3.5 h-3.5" />
@@ -2127,7 +2129,7 @@ export default function PaymentHub({
 
             <form className="space-y-4 text-xs" onSubmit={handleCreateInvoiceSubmit}>
               <div className="space-y-1">
-                <label className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Enterprise Client Name</label>
+                <label htmlFor="inv-client-input" className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Enterprise Client Name</label>
                 <input
                   type="text"
                   required
@@ -2135,49 +2137,54 @@ export default function PaymentHub({
                   value={invClient}
                   onChange={(e) => setInvClient(e.target.value)}
                   className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                  id="inv-client-input"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Client Billing Email</label>
+                <label htmlFor="inv-email-input" className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Client Billing Email</label>
                 <input
                   type="email"
                   placeholder="e.g. billing@aerospace.io"
                   value={invEmail}
                   onChange={(e) => setInvEmail(e.target.value)}
                   className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                  id="inv-email-input"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Hours Allocated</label>
+                  <label htmlFor="inv-hours-input" className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Hours Allocated</label>
                   <input
                     type="number"
                     placeholder="40"
                     value={invHours}
                     onChange={(e) => setInvHours(e.target.value)}
                     className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                    id="inv-hours-input"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Hourly Rate (€)</label>
+                  <label htmlFor="inv-rate-input" className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Hourly Rate (€)</label>
                   <input
                     type="number"
                     placeholder="45"
                     value={invRate}
                     onChange={(e) => setInvRate(e.target.value)}
                     className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                    id="inv-rate-input"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Clearing Ledger Currency</label>
+                <label htmlFor="inv-currency-select" className="text-gray-500 font-mono font-bold uppercase tracking-wider block">Clearing Ledger Currency</label>
                 <select
                   value={invCurrency}
                   onChange={(e) => setInvCurrency(e.target.value)}
                   className="w-full bg-[#131722] py-2 px-3 border border-white/5 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                  id="inv-currency-select"
                 >
                   <option value="EUR">EURO (€)</option>
                   <option value="USD">USD ($)</option>
@@ -2187,7 +2194,7 @@ export default function PaymentHub({
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#00E0C7] text-black font-mono font-bold uppercase tracking-widest text-[11px] rounded-xl hover:scale-102 transition-transform mt-4 cursor-pointer"
+                className="w-full py-3 bg-[#00E0C7] text-black font-mono font-bold uppercase tracking-widest text-[11px] rounded-xl hover:scale-100 transition-transform mt-4 cursor-pointer"
               >
                 GENERATE EXPORT LEDGER
               </button>

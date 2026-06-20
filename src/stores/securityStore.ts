@@ -21,7 +21,7 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       // 1. Fetch dynamically computed risk score
-      const scoreRes = await fetch('/api/security/score');
+      const scoreRes = await fetch('/api/security/overview');
       if (!scoreRes.ok) throw new Error('Could not pull security score analysis.');
       const scoreData = await scoreRes.json();
 
@@ -29,24 +29,24 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
       const devRes = await fetch('/api/security/devices');
       const devData = devRes.ok ? await devRes.json() : [];
 
-      const activeSess = devData.filter((d: any) => d.isActive).length || 1;
-      const trustedDev = devData.filter((d: any) => d.isTrusted).length || 1;
+      const activeSess = devData.filter((d: any) => d.isActive).length;
+      const trustedDev = devData.filter((d: any) => d.isTrusted).length;
 
       // 3. Set combined overview
       let scoreLabel: 'low' | 'medium' | 'high' | 'critical' = 'low';
-      if (scoreData.score < 50) scoreLabel = 'critical';
-      else if (scoreData.score < 75) scoreLabel = 'high';
-      else if (scoreData.score < 90) scoreLabel = 'medium';
+      if (scoreData.securityScore < 50) scoreLabel = 'critical';
+      else if (scoreData.securityScore < 75) scoreLabel = 'high';
+      else if (scoreData.securityScore < 90) scoreLabel = 'medium';
 
       set({
         overview: {
           riskScore: scoreLabel,
-          riskScoreValue: scoreData.score || 95,
+          riskScoreValue: scoreData.securityScore || 95,
           trustedDevices: trustedDev,
           activeSessions: activeSess,
-          recentAlerts: scoreData.riskSignalsDetected || 0,
-          biometricsActive: scoreData.biometricsActive ?? true,
-          twoFactorActive: scoreData.twoFactorActive ?? true
+          recentAlerts: 0,
+          biometricsActive: scoreData.biometricEnabled ?? false,
+          twoFactorActive: scoreData.twoFactorEnabled ?? false
         },
         isLoading: false
       });
@@ -58,7 +58,7 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
   freezeAccount: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch('/api/security/emergency-freeze', {
+      const res = await fetch('/api/security/freeze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -87,9 +87,10 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
   recoverAccount: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch('/api/security/recover-account', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: '' })
       });
       if (!res.ok) throw new Error('Credentials recovery authorization rejected.');
       const data = await res.json();
@@ -105,10 +106,9 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
 
   toggleBiometrics: async (active: boolean) => {
     try {
-      const res = await fetch('/api/security/biometrics', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: active })
+      const res = await fetch(active ? '/api/security/biometric/enable' : '/api/security/biometric/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
       });
       if (res.ok) {
         if (get().overview) {
@@ -129,10 +129,9 @@ export const useSecurityStore = create<SecurityState>((set, get) => ({
 
   toggleTwoFactor: async (active: boolean) => {
     try {
-      const res = await fetch('/api/security/two-factor', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: active })
+      const res = await fetch(active ? '/api/security/2fa/enable' : '/api/security/2fa/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
       });
       if (res.ok) {
         if (get().overview) {

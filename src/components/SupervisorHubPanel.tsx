@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Shield, 
-  Activity, 
-  Fingerprint, 
-  UserCheck, 
-  History, 
-  AlertTriangle, 
-  Lock, 
-  Unlock, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Shield,
+  Activity,
+  Fingerprint,
+  UserCheck,
+  Lock,
   RefreshCw,
   Clock,
   Laptop,
@@ -31,8 +26,6 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
   const [devices, setDevices] = useState<SecuritySession[]>([]);
   const [kycQueue, setKycQueue] = useState<KycSubmission[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [kycStatusMsg, setKycStatusMsg] = useState<string>('');
-  
   // Form Inputs
   const [docType, setDocType] = useState('CNIE (Moroccan National ID)');
   const [docNum, setDocNum] = useState('');
@@ -105,7 +98,6 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
         setSystemAlert({ type: 'success', text: 'Scanned biometric document uploaded. Status set to: UNDER REVIEW.' });
         setDocNum('');
         onRefreshStates();
-        loadComplianceStates();
       } else {
         setSystemAlert({ type: 'danger', text: data.message || 'Upload failed.' });
       }
@@ -118,7 +110,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
   // Perform Emergency Panic Lock (Freezes ALL Assets)
   const triggerEmergencyLock = async () => {
-    if (!confirm('🚨 CRITICAL SAFETY WARNING: Are you sure you want to activate the EMERGENCY FLOW FREEZE protocol? This will immediately lock all active ledgers, disable cards, and invalidate active sessions.')) {
+    if (!window.confirm('🚨 CRITICAL SAFETY WARNING: Are you sure you want to activate the EMERGENCY FLOW FREEZE protocol? This will immediately lock all active ledgers, disable cards, and invalidate active sessions.')) {
       return;
     }
 
@@ -132,7 +124,6 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
       if (data.status === 'success') {
         setSystemAlert({ type: 'danger', text: '🚨 ALL FLOW ACCOUNTS COLD FROZEN. System operates in regulatory audit mode.' });
         onRefreshStates();
-        loadComplianceStates();
       }
     } catch (e) {
       console.error(e);
@@ -153,7 +144,6 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
       if (data.status === 'success') {
         setSystemAlert({ type: 'success', text: `Biometric credential successfully reviewed: ${decision.toUpperCase()}` });
         onRefreshStates();
-        loadComplianceStates();
       }
     } catch (err) {
       console.error(err);
@@ -161,7 +151,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
   };
 
   return (
-    <div className="lg:col-span-12 bg-[#131722]/80 backdrop-blur-2xl border border-white/5 rounded-[32px] p-6 sm:p-8 shadow-2xl relative overflow-hidden" id="compliance-supervisor-panel">
+    <div className="lg:col-span-12 bg-[#182029]/60 backdrop-blur-2xl border border-[#8a919f]/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden" id="compliance-supervisor-panel">
       {/* Glow Halo */}
       <div className="absolute top-0 left-1/2 w-80 h-80 bg-[#7B5CFF]/10 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
@@ -180,7 +170,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
         {/* Sync Indicator */}
         <div className="flex items-center gap-3">
           <span className="px-3 py-1 bg-white/[0.03] border border-white/5 text-[10px] font-mono rounded-full uppercase text-gray-400 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00E0C7] animate-ping" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00E0C7] animate-ping" aria-hidden="true" />
             Active ledger synced
           </span>
           <button 
@@ -195,7 +185,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
       {/* System Warning Message Bar */}
       {systemAlert && (
-        <div className={`my-4 p-3.5 rounded-xl border flex items-center justify-between text-xs font-mono relative z-20 animate-fade-in ${
+        <div role="alert" className={`my-4 p-3.5 rounded-xl border flex items-center justify-between text-xs font-mono relative z-20 animate-fade-in ${
           systemAlert.type === 'success' ? 'bg-[#00E0C7]/10 border-[#00E0C7]/20 text-white' : 'bg-red-500/10 border-red-500/20 text-white animate-pulse'
         }`}>
           <div>{systemAlert.text}</div>
@@ -204,12 +194,16 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
       )}
 
       {/* Secondary Sub-Tabs Menu Layout */}
-      <div className="flex bg-[#0c121c]/60 border border-white/5 rounded-2xl p-1 gap-1 texts-xs font-medium my-6 max-w-xl select-none relative z-10 text-[11px] font-mono uppercase tracking-wider">
+      <div className="flex bg-[#0c121c]/60 border border-white/5 rounded-2xl p-1 gap-1 text-xs font-medium my-6 max-w-xl select-none relative z-10 text-[11px] font-mono uppercase tracking-wider" role="tablist" aria-label="Supervisor hub sections">
         <button
           onClick={() => setActiveSubTab('audit')}
           className={`flex-1 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${
             activeSubTab === 'audit' ? 'bg-white/5 text-[#00E0C7] font-semibold border border-white/10' : 'text-gray-400 hover:text-white'
           }`}
+          role="tab"
+          aria-selected={activeSubTab === 'audit'}
+          aria-controls="subtab-panel-audit"
+          id="subtab-audit"
         >
           <Activity className="w-3.5 h-3.5" />
           <span>Ledger Logs</span>
@@ -219,6 +213,10 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
           className={`flex-1 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${
             activeSubTab === 'kyc' ? 'bg-white/5 text-[#00E0C7] font-semibold border border-white/10' : 'text-gray-400 hover:text-white'
           }`}
+          role="tab"
+          aria-selected={activeSubTab === 'kyc'}
+          aria-controls="subtab-panel-kyc"
+          id="subtab-kyc"
         >
           <Fingerprint className="w-3.5 h-3.5" />
           <span>Biometric ID</span>
@@ -228,6 +226,10 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
           className={`flex-1 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${
             activeSubTab === 'devices' ? 'bg-white/5 text-[#00E0C7] font-semibold border border-white/10' : 'text-gray-400 hover:text-white'
           }`}
+          role="tab"
+          aria-selected={activeSubTab === 'devices'}
+          aria-controls="subtab-panel-devices"
+          id="subtab-devices"
         >
           <Laptop className="w-3.5 h-3.5" />
           <span>Sessions</span>
@@ -237,6 +239,10 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
           className={`flex-1 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1.5 ${
             activeSubTab === 'admin' ? 'bg-white/5 text-purple-400 font-semibold border border-white/10' : 'text-gray-400 hover:text-white'
           }`}
+          role="tab"
+          aria-selected={activeSubTab === 'admin'}
+          aria-controls="subtab-panel-admin"
+          id="subtab-admin"
         >
           <UserCheck className="w-3.5 h-3.5" />
           <span>Reviewer Guard</span>
@@ -248,7 +254,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
         {/* SUB-TAB 1: IMMUTABLE AUDIT LOGS LEDGER */}
         {activeSubTab === 'audit' && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-4 animate-fade-in" role="tabpanel" id="subtab-panel-audit" aria-labelledby="subtab-audit">
             <div className="flex justify-between items-center bg-white/[0.01] p-3 rounded-2xl border border-white/5">
               <span className="text-[10px] text-gray-400 uppercase font-mono">Live Sandbox Operations Ledger Entries ({auditLogs.length})</span>
               <span className="text-[9px] text-[#00e0c7] font-mono">Status: Immutable Ledger Protection</span>
@@ -256,7 +262,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
             <div className="overflow-x-auto">
               <div className="min-w-[600px] bg-[#0c121c]/40 border border-white/5 rounded-2xl overflow-hidden font-mono text-[10px]">
-                <table className="w-full text-left">
+                <table className="w-full text-left" aria-label="Audit log entries">
                   <thead>
                     <tr className="border-b border-white/5 bg-white/[0.01] text-gray-400 uppercase text-[9px] tracking-wider">
                       <th className="p-3.5">Timestamp</th>
@@ -305,7 +311,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
         {/* SUB-TAB 2: REGULATORY ID DOCUMENTS & KYC SUBMISSION */}
         {activeSubTab === 'kyc' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" role="tabpanel" id="subtab-panel-kyc" aria-labelledby="subtab-kyc">
             {/* Identity Upload Form */}
             <div className="bg-[#0c121c]/40 border border-white/5 p-6 rounded-2xl space-y-4">
               <h3 className="text-xs font-mono text-gray-400 uppercase font-bold">Upload Moroccan Biometric ID (CNIE)</h3>
@@ -313,11 +319,12 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
               
               <form onSubmit={handleSubmitKyc} className="space-y-4">
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase text-[9px] mb-1.5">Document Variant</label>
+                  <label htmlFor="super-doctype-select" className="text-gray-400 block font-mono uppercase text-[9px] mb-1.5">Document Variant</label>
                   <select
                     value={docType}
                     onChange={(e) => setDocType(e.target.value)}
                     className="w-full bg-black py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#7b5cff] text-white"
+                    id="super-doctype-select"
                   >
                     <option value="CNIE (Moroccan National ID)">Moroccan National ID Card (CNIE)</option>
                     <option value="Passport (International)">International Biometric Passport</option>
@@ -326,7 +333,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
                 </div>
 
                 <div>
-                  <label className="text-gray-400 block font-mono uppercase text-[9px] mb-1.5">Document National Serial Number</label>
+                  <label htmlFor="super-docnum-input" className="text-gray-400 block font-mono uppercase text-[9px] mb-1.5">Document National Serial Number</label>
                   <input
                     type="text"
                     required
@@ -334,6 +341,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
                     value={docNum}
                     onChange={(e) => setDocNum(e.target.value)}
                     className="w-full bg-black py-2.5 px-3 border border-white/10 rounded-xl focus:outline-none focus:border-[#7b5cff] font-mono text-white"
+                    id="super-docnum-input"
                   />
                 </div>
 
@@ -358,21 +366,21 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
                 <div className="space-y-4">
                   <div className="flex justify-between items-center py-2.5 border-b border-white/5">
                     <span className="text-gray-400">Financial Identity Scope</span>
-                    <span className="font-bold text-white uppercase">{userProfile.name}</span>
+                    <span className="font-bold text-white uppercase">{userProfile?.name}</span>
                   </div>
                   <div className="flex justify-between items-center py-2.5 border-b border-white/5">
                     <span className="text-gray-400">KYC Status Tag</span>
                     <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
-                      userProfile.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                      userProfile.status === 'under_review' ? 'bg-amber-500/10 text-amber-500 animate-pulse border border-amber-500/20' :
+                      userProfile?.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      userProfile?.status === 'under_review' ? 'bg-amber-500/10 text-amber-500 animate-pulse border border-amber-500/20' :
                       'bg-red-500/10 text-red-500 border border-red-500/20'
                     }`}>
-                      {userProfile.status || 'unverified'}
+                      {userProfile?.status || 'unverified'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2.5">
                     <span className="text-gray-400">Sandbox Security Score</span>
-                    <span className="font-bold text-emerald-400 text-sm font-mono">{userProfile.securityScore || 620} / 850</span>
+                    <span className="font-bold text-emerald-400 text-sm font-mono">{userProfile?.securityScore || 620} / 850</span>
                   </div>
                 </div>
               </div>
@@ -388,7 +396,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
         {/* SUB-TAB 3: ACTIVE SYSTEM SESSIONS & DEVICE BIOMETRICS */}
         {activeSubTab === 'devices' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-fade-in" role="tabpanel" id="subtab-panel-devices" aria-labelledby="subtab-devices">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/[0.01] p-4 rounded-2xl border border-white/5">
               <div>
                 <h4 className="font-bold text-white uppercase text-xs">Biometric Device Fingerprints & Trust list</h4>
@@ -433,7 +441,7 @@ export default function SupervisorHubPanel({ userProfile, onRefreshStates }: Sup
 
         {/* SUB-TAB 4: COMPLIANCE ADMIN QUEUE EXTREME REVIEW PANEL */}
         {activeSubTab === 'admin' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-fade-in" role="tabpanel" id="subtab-panel-admin" aria-labelledby="subtab-admin">
             <div className="p-4 rounded-2xl bg-[#0c121c]/60 border border-purple-500/20 text-purple-200">
               <h4 className="text-xs font-bold uppercase font-mono text-purple-400 flex items-center gap-1.5 mb-1">
                 <Clock className="w-4 h-4" />

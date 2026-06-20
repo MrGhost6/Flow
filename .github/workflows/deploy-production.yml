@@ -1,19 +1,27 @@
 name: FLOW Deploy Production (Enterprise Core)
 
 on:
-  push:
-    branches: [main, master]
+  workflow_run:
+    workflows: ["Backend CI"]
+    types:
+      - completed
+    branches: [main]
 
 jobs:
   deploy-production:
     name: Build, Audit & Ship to Multi-AZ Production
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
-      name: production
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
       url: https://api.flow.com
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v3
+
+      - name: Check CI status
+        if: ${{ github.event.workflow_run.conclusion != 'success' }}
+        run: exit 1
 
       - name: Configure AWS Credentials Secure Session
         uses: aws-actions/configure-aws-credentials@v2
@@ -36,6 +44,13 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Register ECS task definition
+        run: >
+          aws ecs register-task-definition
+          --family flow-app
+          --container-definitions
+          '[{"name":"flow-app","imageUri":"${{ steps.login-ecr.outputs.registry }}/flow-platform-prod:${{ github.sha }}"}]'
 
       - name: Deploy Task Definition to ECS Orchestrator
         run: |

@@ -84,7 +84,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       });
       if (!res.ok) throw new Error('Failed limit adjustment request');
       const data = await res.json();
-      if (data.status === 'success' && data.wallet) {
+      if (data.wallet) {
         // Refresh wallets list
         await get().fetchWallets();
         return data.wallet;

@@ -1,32 +1,52 @@
 import { v4 as uuidv4 } from "uuid";
-
-const tickets: any[] = [];
+import { getPrisma } from "../../database/prisma";
+import { getQueue } from "../../database/bullmq";
 
 export async function createTicket(userId: string, body: any) {
-  const ticket: any = { id: `ticket-${uuidv4().slice(0, 8)}`, userId, subject: body.subject, message: body.message, status: "open", priority: body.priority || "medium", category: body.category || "general", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  tickets.unshift(ticket);
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  const ticket = await p.supportTicket.create({
+    data: {
+      id: `ticket-${uuidv4().slice(0, 8)}`,
+      userId,
+      subject: body.subject,
+      description: body.message || body.description || "",
+      status: "OPEN",
+      priority: (body.priority || "MEDIUM").toUpperCase() as any,
+      category: body.category || "general",
+    },
+  });
+  const q = getQueue("notification");
+  if (q) await q.add("ticket-created", { ticketId: ticket.id, userId });
   return ticket;
 }
 
 export async function listTickets(userId: string) {
-  return tickets.filter((t: any) => t.userId === userId);
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  return p.supportTicket.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
 }
 
 export async function getTicket(ticketId: string) {
-  return tickets.find((t: any) => t.id === ticketId) || null;
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  const ticket = await p.supportTicket.findUnique({ where: { id: ticketId }, include: { messages: true } });
+  return ticket || null;
 }
 
 export async function addMessage(userId: string, ticketId: string, body: any) {
-  const ticket = tickets.find((t: any) => t.id === ticketId);
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  const ticket = await p.supportTicket.findUnique({ where: { id: ticketId } });
   if (!ticket) throw Object.assign(new Error("Ticket not found"), { statusCode: 404 });
-  const msg: any = { id: `msg-${uuidv4().slice(0, 8)}`, ticketId, userId, message: body.message, createdAt: new Date().toISOString() };
-  ticket.messages = ticket.messages || [];
-  ticket.messages.push(msg);
-  ticket.updatedAt = new Date().toISOString();
+  const msg = await p.supportTicketMessage.create({
+    data: { id: `msg-${uuidv4().slice(0, 8)}`, ticketId, senderId: userId, message: body.message },
+  });
   return msg;
 }
 
 export async function closeTicket(userId: string, ticketId: string) {
-  const ticket = tickets.find((t: any) => t.id === ticketId);
-  if (ticket) ticket.status = "closed";
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  await p.supportTicket.update({ where: { id: ticketId }, data: { status: "CLOSED" } });
 }

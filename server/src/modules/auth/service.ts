@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../../config";
@@ -17,7 +18,7 @@ export async function registerUser(body: any) {
   const p = getPrisma();
   if (!p) throw new Error("Database unavailable");
   await p.user.create({ data: { id: userId, email, phone: body.phone || "", userType: "INDIVIDUAL", status: "PENDING", kycLevel: "UNVERIFIED", passwordHash } });
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = crypto.randomInt(100000, 999999).toString();
   const vToken = "vtoken-" + uuidv4();
   await storeOtp(vToken, userId, email, otp, "registration");
   await auditLog(userId, "OTP_DISPATCHED", "AUTH", `Registration OTP sent to ${email}`);
@@ -35,30 +36,25 @@ export async function verifyRegistration(body: any) {
   const wallets = await getUserWallets(user.id);
   if (wallets.length === 0) {
     for (const curr of ["USD", "EUR", "MAD"]) {
-      await p.wallet.create({ data: { id: `w-${uuidv4().slice(0, 8)}`, userId: user.id, currency: curr as any, balance: curr === "MAD" ? 5000 : curr === "EUR" ? 500 : 1000, ledgerBalance: curr === "MAD" ? 5000 : curr === "EUR" ? 500 : 1000 } });
+      await p.wallet.create({ data: { id: `w-${uuidv4().slice(0, 8)}`, userId: user.id, currency: curr as any, balance: 0, ledgerBalance: 0 } });
     }
   }
   const tokens = generateTokens(user.id, user.email);
   await auditLog(user.id, "USER_REGISTER_VERIFIED", "AUTH", "Registration completed");
   const userWallets = await getUserWallets(user.id);
-  return { tokens, user: { id: user.id, name: user.name, email: user.email, phone: user.phone, userType: user.userType, primaryCurrency: user.primaryCurrency, country: user.country, status: user.status, kycStatus: user.kycStatus }, wallets: userWallets };
+  return { tokens, user: { id: user.id, email: user.email, phone: user.phone, userType: user.userType, status: user.status, kycLevel: user.kycLevel }, wallets: userWallets };
 }
 
 export async function loginUser(body: any) {
   const user: any = await getUserByEmail(body.email);
   if (!user) throw Object.assign(new Error("Invalid credentials"), { statusCode: 401 });
   if (!(await bcrypt.compare(body.password, user.passwordHash))) throw Object.assign(new Error("Invalid credentials"), { statusCode: 401 });
-  if (body.bypassMfa) {
-    const tokens = generateTokens(user.id, user.email);
-    await auditLog(user.id, "USER_SIGNIN", "AUTH", "Login via FastPass");
-    return { tokens, user: { id: user.id, name: user.name, email: user.email, phone: user.phone, userType: user.userType, primaryCurrency: user.primaryCurrency, country: user.country, status: user.status, kycStatus: user.kycStatus } };
-  }
   if (body.deviceFingerprint) {
     const tokens = generateTokens(user.id, user.email);
     await auditLog(user.id, "USER_SIGNIN", "AUTH", "Login from trusted device");
-    return { tokens, user: { id: user.id, name: user.name, email: user.email, phone: user.phone, userType: user.userType, primaryCurrency: user.primaryCurrency, country: user.country, status: user.status, kycStatus: user.kycStatus } };
+    return { tokens, user: { id: user.id, email: user.email, phone: user.phone, userType: user.userType, status: user.status, kycLevel: user.kycLevel } };
   }
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = crypto.randomInt(100000, 999999).toString();
   const vToken = "vtoken-login-" + uuidv4();
   await storeOtp(vToken, user.id, user.email, otp, "login");
   await auditLog(user.id, "MFA_PROMPT", "AUTH", `MFA required for login: ${body.deviceName || "unknown"}`);
@@ -72,6 +68,10 @@ export async function logoutUser(userId: string) {
 export async function refreshUserToken(refreshToken: string) {
   const jwt = await import("jsonwebtoken");
   const decoded = jwt.default.verify(refreshToken, config.jwtRefreshSecret) as { userId: string };
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  const session = await p.session.findFirst({ where: { userId: decoded.userId, isActive: true } });
+  if (!session) throw Object.assign(new Error("Session expired"), { statusCode: 401 });
   const user: any = await getUser(decoded.userId);
   if (!user) throw Object.assign(new Error("User not found"), { statusCode: 401 });
   return generateTokens(user.id, user.email);
@@ -80,12 +80,13 @@ export async function refreshUserToken(refreshToken: string) {
 export async function forgotPassword(email: string) {
   const user: any = await getUserByEmail(email);
   if (!user) return { sent: false };
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = crypto.randomInt(100000, 999999).toString();
   const vToken = "vtoken-reset-" + uuidv4();
   await storeOtp(vToken, user.id, user.email, otp, "reset-password");
   await auditLog(user.id, "PASSWORD_RESET_DISPATCH", "AUTH", "Password reset OTP sent");
-  const { sendEmail } = await import("../../database/mailpit");
-  await sendEmail(user.email, "FLOW Password Reset", `Your reset code: ${otp}\nExpires in 5 minutes.`).catch(() => {});
+  const { getQueue } = await import("../../database/bullmq");
+  const emailQ = getQueue("email");
+  if (emailQ) await emailQ.add("send-email", { to: user.email, subject: "FLOW Password Reset", text: `Your reset code: ${otp}\nExpires in 5 minutes.` });
   return { sent: true, verificationToken: vToken, simulatedOtp: config.nodeEnv === "development" ? otp : undefined };
 }
 
@@ -107,7 +108,7 @@ export async function resendOtp(verificationToken: string) {
   const raw = await redisGet(`otp:${verificationToken}`);
   if (!raw) throw Object.assign(new Error("Session expired"), { statusCode: 400 });
   const data = JSON.parse(raw);
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = crypto.randomInt(100000, 999999).toString();
   await storeOtp(verificationToken, data.userId, data.email, otp, data.type);
   return { simulatedOtp: config.nodeEnv === "development" ? otp : undefined };
 }

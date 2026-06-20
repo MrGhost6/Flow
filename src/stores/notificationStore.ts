@@ -29,36 +29,42 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   markAsRead: async (id) => {
+    const prev = get().notifications;
+    set(state => ({
+      notifications: state.notifications.map(n => n.id === id ? { ...n, isRead: true } : n)
+    }));
     try {
       const res = await fetch(`/api/notifications/${id}/read`, {
         method: 'PATCH'
       });
-      if (res.ok) {
-        set(state => ({
-          notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)
-        }));
+      if (!res.ok) {
+        set({ notifications: prev });
       }
     } catch (err) {
+      set({ notifications: prev });
       console.error('Failed to mark notification read status', err);
     }
   },
 
   markAllAsRead: async () => {
+    const prev = get().notifications;
+    set(state => ({
+      notifications: state.notifications.map(n => ({ ...n, isRead: true }))
+    }));
     try {
       const res = await fetch('/api/notifications/mark-all-read', {
         method: 'POST'
       });
-      if (res.ok) {
-        set(state => ({
-          notifications: state.notifications.map(n => ({ ...n, read: true }))
-        }));
+      if (!res.ok) {
+        set({ notifications: prev });
       }
     } catch (err) {
+      set({ notifications: prev });
       console.error('Failed to clear notifications stream', err);
     }
   },
 
   getUnreadCount: () => {
-    return get().notifications.filter(n => !n.read).length;
+    return get().notifications.filter(n => !n.isRead).length;
   }
 }));

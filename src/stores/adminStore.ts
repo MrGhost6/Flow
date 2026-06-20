@@ -58,12 +58,18 @@ export const useAdminStore = create<AdminState>((set) => ({
   fetchDashboard: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch('/api/admin/dashboard');
+      const res = await fetch('/api/admin/metrics');
       if (!res.ok) throw new Error('Failed to pull admin workspace dashboard data.');
       const data = await res.json();
       set({
-        metrics: data.metrics,
-        activityChart: data.activityChart,
+        metrics: {
+          totalVolumeUSD: data.totalVolume || 0,
+          activeUsers: data.totalUsers || 0,
+          openFraudAlerts: data.pendingFraud || 0,
+          openTickets: data.openTickets || 0,
+          pendingKYC: 0,
+          complianceRatio: 0,
+        },
         isLoading: false
       });
     } catch (err: any) {
@@ -291,8 +297,8 @@ export const useModerationStore = create<ModerationState>((set, get) => ({
       });
       if (res.ok) {
         set((state) => ({
-          users: state.users.map((u) => (u.id === id ? { ...u, role: role || undefined } : u)),
-          selectedUser: state.selectedUser?.id === id ? { ...state.selectedUser, role: role || undefined } : state.selectedUser
+          users: state.users.map((u) => (u.id === id ? { ...u, role: role ?? undefined } : u)),
+          selectedUser: state.selectedUser?.id === id ? { ...state.selectedUser, role: role ?? undefined } : state.selectedUser
         }));
         return true;
       }
@@ -541,10 +547,10 @@ export const useAdminAnalyticsStore = create<AnalyticsState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const [uRes, tRes, fRes, sRes] = await Promise.all([
-        fetch('/api/admin/analytics/users'),
-        fetch('/api/admin/analytics/transactions'),
-        fetch('/api/admin/analytics/fraud'),
-        fetch('/api/admin/analytics/support'),
+        fetch('/api/admin/user-analytics'),
+        fetch('/api/admin/transaction-analytics'),
+        fetch('/api/admin/fraud-analytics'),
+        fetch('/api/admin/support-analytics'),
       ]);
 
       set({

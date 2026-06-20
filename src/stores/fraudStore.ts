@@ -29,7 +29,7 @@ export const useFraudStore = create<FraudState>((set, get) => ({
 
   resolveFraudEvent: async (id: string) => {
     try {
-      const res = await fetch(`/api/security/fraud-events/${id}/resolve`, {
+      const res = await fetch(`/api/admin/fraud-events/${id}/resolve`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' }
       });

@@ -10,12 +10,13 @@ export async function auditLog(
 ) {
   const log = { id: uuidv4(), userId, action, resource, description, severity, timestamp: new Date().toISOString() };
   const prisma = getPrisma();
-  if (prisma) {
-    try {
-      await prisma.auditLog.create({
-        data: { id: log.id, userId, action: action as any, resource, description, metadata: { severity } },
-      });
-    } catch {}
+  if (!prisma) return log;
+  try {
+    await prisma.auditLog.create({
+      data: { id: log.id, userId, action: action as any, resource, description, metadata: { severity } },
+    });
+  } catch (e) {
+    console.error("[AUDIT] Failed to write audit log:", e);
   }
   return log;
 }

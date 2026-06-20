@@ -11,11 +11,11 @@ export function hashDocNumber(doc: string): string {
 }
 
 export function generateRef(): string {
-  return `FLOW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  return `FLOW-${Date.now()}-${crypto.randomInt(1000, 9999)}`;
 }
 
 export function generateInvNum(): string {
-  return `INV-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+  return `INV-${new Date().getFullYear()}-${String(crypto.randomInt(1000, 9999))}`;
 }
 
 export function slugify(text: string): string {

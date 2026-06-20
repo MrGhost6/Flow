@@ -53,8 +53,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
       });
       if (!res.ok) throw new Error('Deployment trigger failed on cluster orchestration');
       
-      const data = await res.json();
-      
       // Immediately read deployments to update view
       const registryRes = await fetch('/api/deployments');
       const registryData = await registryRes.json();
@@ -74,8 +72,6 @@ export const useDeploymentStore = create<DeploymentState>((set, get) => ({
         }
       });
       if (!res.ok) throw new Error('Rollback pipeline trigger failed');
-      
-      const data = await res.json();
       
       const registryRes = await fetch('/api/deployments');
       const registryData = await registryRes.json();

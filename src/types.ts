@@ -1,4 +1,12 @@
-export type UserType = 'freelancer' | 'student' | 'traveler' | 'business';
+export type UserType = 'INDIVIDUAL' | 'BUSINESS';
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  userType: UserType;
+  primaryCurrency: string;
+  country: string;
+}
 
 export interface UserProfile {
   name: string;
@@ -19,9 +27,9 @@ export interface Transaction {
   id: string;
   date: string;
   description: string;
-  category: 'Income' | 'Utilities' | 'Dining' | 'Software' | 'Travel' | 'Exchange' | 'Education' | 'Gear';
+  category: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: 'TRANSFER' | 'PAYMENT' | 'DEPOSIT' | 'WITHDRAWAL' | 'REFUND' | 'FEE' | 'EXCHANGE' | 'SPLIT_BILL' | 'QR_PAYMENT' | 'EXPENSE' | 'INCOME';
   currency: string;
 }
 
@@ -79,7 +87,7 @@ export interface PaymentRequest {
   amount: number;
   currency: 'USD' | 'EUR' | 'MAD';
   note: string;
-  status: 'pending' | 'accepted' | 'declined' | 'cancelled' | 'expired';
+  status: 'PENDING' | 'PAID' | 'PARTIALLY_PAID' | 'CANCELLED' | 'EXPIRED';
   expires_at: string;
   created_at: string;
   updated_at: string;
@@ -117,7 +125,7 @@ export interface SplitBill {
   title: string;
   total_amount: number;
   currency: 'USD' | 'EUR' | 'MAD';
-  status: 'pending' | 'partially_paid' | 'completed' | 'cancelled';
+  status: 'OPEN' | 'SETTLED' | 'CANCELLED';
   created_at: string;
   // Enriched fields
   creatorName?: string;
@@ -134,7 +142,7 @@ export interface Notification {
   userId: string;
   text: string;
   time: string;
-  read: boolean;
+  isRead: boolean;
   type: string;
   createdAt: string;
 }
@@ -186,8 +194,8 @@ export interface SupportTicket {
   userId: string;
   subject: string;
   category: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  status: 'open' | 'pending' | 'resolved' | 'closed' | 'escalated';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  status: 'OPEN' | 'IN_PROGRESS' | 'WAITING_ON_USER' | 'RESOLVED' | 'CLOSED';
   createdAt: string;
   messages: {
     id: string;
@@ -284,11 +292,11 @@ export interface FraudEvent {
   id: string;
   userId: string;
   eventType: string;
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   description: string;
   relatedEntityType?: string;
   relatedEntityId?: string;
-  resolved: boolean;
+  status: 'INVESTIGATING' | 'CONFIRMED' | 'FALSE_POSITIVE' | 'RESOLVED';
   createdAt: string;
 }
 

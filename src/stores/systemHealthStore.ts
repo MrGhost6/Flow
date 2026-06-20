@@ -39,8 +39,24 @@ export const useSystemHealthStore = create<SystemHealthState>((set) => ({
     try {
       const res = await fetch('/api/health');
       if (!res.ok) throw new Error('Failed to fetch system health stats');
-      const data = await res.json();
-      set({ systemOverview: data, isFetching: false, error: null });
+      const raw = await res.json();
+      set({
+        systemOverview: {
+          status: raw.status === 'healthy' ? 'healthy' : 'degraded',
+          version: raw.version || '1.0.0',
+          environment: process.env.NODE_ENV || 'development',
+          uptimeSeconds: raw.uptime || 0,
+          timestamp: raw.timestamp || new Date().toISOString(),
+          services: {
+            api: { status: raw.status === 'healthy' ? 'healthy' : 'degraded' },
+            database: { status: 'degraded' },
+            redis: { status: 'degraded' },
+            queues: { status: 'degraded' }
+          }
+        },
+        isFetching: false,
+        error: null
+      });
     } catch (err: any) {
       set({ error: err.message || 'Error loading health logs', isFetching: false });
     }

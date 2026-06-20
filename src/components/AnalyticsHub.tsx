@@ -86,7 +86,7 @@ export default function AnalyticsHub({
   const [subTab, setSubTab] = useState<SubHubTab>('overview');
 
   // Load Zustand stores
-  const { overview, trends, categories, timeframe, fetchAnalytics, setTimeframe } = useAnalyticsStore();
+  const { overview, trends, categories, timeframe, fetchAnalytics } = useAnalyticsStore();
   const { budgets, fetchBudgets, createBudget, updateBudget, deleteBudget } = useBudgetStore();
   const { goals, fetchSavingsGoals, createSavingsGoal, contribute, updateSavingsGoal } = useSavingsStore();
   const { subscriptions: storeSubs, fetchSubscriptions, cancelSubscription } = useSubscriptionStore();
@@ -218,7 +218,7 @@ export default function AnalyticsHub({
         notifyAndAlert(`Allocated deposit of ${parsed.toLocaleString()} MAD into your ${name} target savings reserve.`);
         fetchSavingsGoals();
       } else {
-        alert("Unable to process savings contribution: Insufficient wallet balances.");
+        notifyAndAlert("Unable to process savings contribution: Insufficient wallet balances.", 'ERROR');
       }
     }
   };
@@ -247,11 +247,11 @@ export default function AnalyticsHub({
       {/* 1. Header with custom functional sub tabs */}
       <section className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-display-lg-mobile font-display-lg-mobile md:text-3xl md:font-bold text-on-background flex items-center gap-2">
+          <h1 className="text-[32px] md:text-[48px] font-bold leading-[40px] md:leading-[56px] tracking-[-0.02em] flex items-center gap-2">
             Finance OS Center
             <Sparkle className="w-5 h-5 text-primary animate-pulse" />
           </h1>
-          <p className="text-sm text-on-surface-variant mt-1">
+          <p className="text-[#8a919f] max-w-2xl">
             Predictive balance tracking, category budgets, savings goals, and AI analysis.
           </p>
         </div>
@@ -494,7 +494,7 @@ export default function AnalyticsHub({
                           </span>
                           <button 
                             onClick={async () => {
-                              if (confirm("Permanently deactivate this target spending threshold?")) {
+                              if (window.confirm("Permanently deactivate this target spending threshold?")) {
                                 const ok = await deleteBudget(b.id);
                                 if (ok) {
                                   notifyAndAlert(`Removed threshold protection on ${b.category}`);
@@ -989,7 +989,7 @@ export default function AnalyticsHub({
       <AnimatePresence>
         {showAddBudgetModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 select-none animate-fade-in" id="add-budget-dialog-wrapper">
-            <div className="absolute inset-0" onClick={() => setShowAddBudgetModal(false)} />
+            <div className="absolute inset-0" role="button" tabIndex={0} onClick={() => setShowAddBudgetModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowAddBudgetModal(false) }} aria-label="Close modal" />
             
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -1005,11 +1005,12 @@ export default function AnalyticsHub({
               <form className="space-y-4 text-xs" onSubmit={handleAddNewBudget}>
                 
                 <div className="space-y-1">
-                  <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Spending Category</label>
+                  <label htmlFor="budget-category-select" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Spending Category</label>
                   <select
                     value={addBudgetCategory}
                     onChange={(e) => setAddBudgetCategory(e.target.value)}
                     className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                    id="budget-category-select"
                   >
                     <option value="Dining">Dining (Cafes, Restaurants)</option>
                     <option value="Software">Software (SaaS, Clouds)</option>
@@ -1020,7 +1021,7 @@ export default function AnalyticsHub({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Budget Cap Limit</label>
+                    <label htmlFor="budget-limit-input" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Budget Cap Limit</label>
                     <input
                       type="number"
                       required
@@ -1028,15 +1029,17 @@ export default function AnalyticsHub({
                       value={addBudgetLimit}
                       onChange={(e) => setAddBudgetLimit(e.target.value)}
                       className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="budget-limit-input"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Wallet Currency</label>
+                    <label htmlFor="budget-currency-select" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Wallet Currency</label>
                     <select
                       value={addBudgetCurrency}
                       onChange={(e) => setAddBudgetCurrency(e.target.value)}
                       className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="budget-currency-select"
                     >
                       <option value="MAD">MAD (Dirham)</option>
                       <option value="USD">USD (Dollar)</option>
@@ -1061,7 +1064,7 @@ export default function AnalyticsHub({
       <AnimatePresence>
         {showAddGoalModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 select-none animate-fade-in" id="add-goal-dialog-wrapper">
-            <div className="absolute inset-0" onClick={() => setShowAddGoalModal(false)} />
+            <div className="absolute inset-0" role="button" tabIndex={0} onClick={() => setShowAddGoalModal(false)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowAddGoalModal(false) }} aria-label="Close modal" />
             
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -1077,7 +1080,7 @@ export default function AnalyticsHub({
               <form className="space-y-4 text-xs" onSubmit={handleAddNewGoalSubmit}>
                 
                 <div className="space-y-1">
-                  <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Goal Designation Name</label>
+                  <label htmlFor="goal-name-input" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Goal Designation Name</label>
                   <input
                     type="text"
                     required
@@ -1085,12 +1088,13 @@ export default function AnalyticsHub({
                     value={newGoalName}
                     onChange={(e) => setNewGoalName(e.target.value)}
                     className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                    id="goal-name-input"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Target Pool Amount (MAD)</label>
+                    <label htmlFor="goal-target-input" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Target Pool Amount (MAD)</label>
                     <input
                       type="number"
                       required
@@ -1098,27 +1102,30 @@ export default function AnalyticsHub({
                       value={newGoalTarget}
                       onChange={(e) => setNewGoalTarget(e.target.value)}
                       className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="goal-target-input"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Starter Balance (MAD)</label>
+                    <label htmlFor="goal-current-input" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Starter Balance (MAD)</label>
                     <input
                       type="number"
                       placeholder="e.g. 1500"
                       value={newGoalCurrent}
                       onChange={(e) => setNewGoalCurrent(e.target.value)}
                       className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="goal-current-input"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Goal Category</label>
+                    <label htmlFor="goal-category-select" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Goal Category</label>
                     <select
                       value={newGoalType}
                       onChange={(e) => setNewGoalType(e.target.value as any)}
                       className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none focus:border-[#00e0c7]"
+                      id="goal-category-select"
                     >
                       <option value="travel">Travel</option>
                       <option value="emergency_fund">Emergency Fund</option>
@@ -1131,7 +1138,7 @@ export default function AnalyticsHub({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Visual Icon & Palette</label>
+                    <label htmlFor="goal-icon-select" className="text-gray-400 font-mono font-bold uppercase tracking-wider block">Visual Icon & Palette</label>
                     <select
                       value={newGoalIcon}
                       onChange={(e) => {
@@ -1139,6 +1146,7 @@ export default function AnalyticsHub({
                         setNewGoalColor(e.target.value === 'plane' ? '#00dfc6' : '#a5c8ff');
                       }}
                       className="w-full bg-[#182029] py-2.5 px-3 border border-outline-variant/20 rounded-xl font-mono text-white text-xs focus:outline-none"
+                      id="goal-icon-select"
                     >
                       <option value="plane">Plane Accent Teal</option>
                       <option value="home">Home Accent Platinum</option>
