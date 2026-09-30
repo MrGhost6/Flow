@@ -280,7 +280,8 @@ export default function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiHistory, isAiTyping]);
 
-  // Total balance computed in primary currency or USD equivalent (Simple aggregate conversion for preview)
+  // Sums every wallet into a USD total so the header can show one number.
+  // Hardcoded rates for now, these should come from a rates table eventually.
   const computeTotalInUSD = () => {
     let sum = 0;
     wallets.forEach((w) => {
@@ -612,7 +613,7 @@ export default function App() {
     }
   };
 
-  // Recharts Premium Data (tailored neon visualizer mapping transaction history sums)
+  // TODO: replace with real daily totals grouped from the transaction list
   const dailyChartData = [
     { day: 'Mon', inflow: 1200, outflow: 400 },
     { day: 'Tue', inflow: 900, outflow: 300 },

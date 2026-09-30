@@ -29,7 +29,7 @@ export interface AdminNotification {
 }
 
 // -----------------------------------------
-// 1. MASTER ADMIN & ROLE STORE
+// Admin role + metrics
 // -----------------------------------------
 interface AdminState {
   currentRole: AdminRole;

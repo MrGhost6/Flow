@@ -1,8 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// Node 22+ exposes a global localStorage that is disabled unless
+// --localstorage-file is passed, and it shadows the jsdom one vitest sets up.
+// Defining the global explicitly keeps these tests working on every Node version.
+const storage = () => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (k: string) => (k in store ? store[k] : null),
+    setItem: (k: string, v: string) => {
+      store[k] = String(v);
+    },
+    removeItem: (k: string) => {
+      delete store[k];
+    },
+    clear: () => {
+      store = {};
+    },
+  };
+};
+
 describe('apiFetch', () => {
   beforeEach(() => {
-    localStorage.clear();
+    vi.stubGlobal('localStorage', storage());
   });
 
   afterEach(() => {

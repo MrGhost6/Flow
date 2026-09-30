@@ -1,8 +1,0 @@
-{
-  "name": "FLOW",
-  "description": "An AI-powered intelligent financial operating system. Seamless multi-currency wallets, high-fidelity interactive analytics, automated invoice generation, customizeable virtual cards, and Flow AI - the ultimate premium financial advisor.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}

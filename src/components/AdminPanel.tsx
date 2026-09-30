@@ -240,7 +240,7 @@ export default function AdminPanel() {
   return (
     <div className="w-full bg-[#080D14] text-gray-200 min-h-screen rounded-[24px] border border-white/5 overflow-hidden flex flex-col" id="operations-control-panel">
       
-      {/* 👑 MASTER OPERATIONAL HEADER */}
+      {/* Header */}
       <header className="px-6 py-5 bg-[#0C121E]/90 border-b border-white/5 backdrop-blur-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-50">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-rose-500/15 border border-rose-500/30 rounded-xl flex items-center justify-center text-rose-400">
@@ -249,7 +249,7 @@ export default function AdminPanel() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-bold tracking-tight uppercase font-mono text-white">FLOW CONTROL CENTER</h1>
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-mono">STEP 11</span>
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-mono">ADMIN</span>
             </div>
             <p className="text-[10px] text-gray-400 font-mono mt-0.5">Fintech Operating System Admin • Realtime Regulatory Core</p>
           </div>
@@ -355,7 +355,7 @@ export default function AdminPanel() {
         </div>
       </header>
 
-      {/* 🚀 INTERNAL SUB-NAVIGATION MODULE (Stripe/Linear Aesthetics) */}
+      {/* Sub-navigation */}
       <div className="bg-[#0A0F17] border-b border-white/5 px-6 py-1 overflow-x-auto flex gap-1 scrollbar-none z-40">
         
         <button
@@ -443,7 +443,7 @@ export default function AdminPanel() {
 
       </div>
 
-      {/* 📦 BODY COMPONENT CONTAINER (FADES IN ON SELECTION) */}
+      {/* Selected view */}
       <main className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-6">
           

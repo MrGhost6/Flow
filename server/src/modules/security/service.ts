@@ -56,10 +56,18 @@ export async function requestBiometric(_userId?: string) {
   return { challenge: uuidv4(), expiresAt: new Date(Date.now() + 120000).toISOString() };
 }
 
-export async function enableBiometric(_userId: string) {
+export async function enableBiometric(userId: string) {
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  await p.user.update({ where: { id: userId }, data: { biometricEnrolled: true } });
+  await auditLog(userId, "BIOMETRIC_ENABLED", "SECURITY", "Biometric unlock enrolled");
 }
 
-export async function disableBiometric(_userId: string) {
+export async function disableBiometric(userId: string) {
+  const p = getPrisma();
+  if (!p) throw new Error("Database unavailable");
+  await p.user.update({ where: { id: userId }, data: { biometricEnrolled: false } });
+  await auditLog(userId, "BIOMETRIC_DISABLED", "SECURITY", "Biometric unlock removed");
 }
 
 export async function enable2FA(userId: string) {

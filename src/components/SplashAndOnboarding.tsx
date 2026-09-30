@@ -39,7 +39,8 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
   // Navigation modes: 'landing' | 'login' | 'register' | 'otp_verify' | 'forgot_password' | 'onboarding'
   const [mode, setMode] = useState<'landing' | 'login' | 'register' | 'otp_verify' | 'forgot_password' | 'onboarding'>('landing');
   const [otpPurpose, setOtpPurpose] = useState<'registration' | 'login' | 'reset-password'>('registration');
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1); // Step 1: Details, Step 2: UseCase, Step 3: KYC, Step 4: PIN & Wallets Setup
+  // 1: Details, 2: UseCase, 3: KYC, 4: PIN & Wallets Setup
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Auth Context Tokens
   const [verificationToken, setVerificationToken] = useState('');
@@ -79,7 +80,7 @@ export default function SplashAndOnboarding({ onComplete }: OnboardingProps) {
   const [fingerprint, setFingerprint] = useState(false);
   const [isProvisioning, setIsProvisioning] = useState(false);
 
-  // KYC States (Step 3)
+  // KYC States
   const [docType, setDocType] = useState('CNIE Moroccan ID');
   const [docNumber, setDocNumber] = useState('');
   const [isKycScanning, setIsKycScanning] = useState(false);

@@ -61,13 +61,11 @@ export default function PaymentHub({
   const { transferFlow, validationState, confirmationState, isProcessing: sendingMoney, errorMessage, successDetails, setTransferDetails, resetFlow, validateTransfer, sendMoney } = usePaymentStore();
   const { receipt, fetchReceipt, clearReceipt, isLoading: loadingReceipt } = useReceiptStore();
 
-  // Step 8 dynamic stores
   const { requests: payRequests, isLoading: loadingRequests, fetchRequests, createRequest, acceptRequest, declineRequest, cancelRequest } = usePaymentRequestStore();
   const { currentQR, qrPayloadString, scannedQR, isLoading: loadingQR, generateQR, validateQR, payQR, clearScanState } = useQRPaymentStore();
   const { bills: splitBills, isLoading: loadingSplits, fetchBills, createSplitBill, paySplitShare } = useSplitBillStore();
   const { fetchNotifications } = useNotificationStore();
 
-  // Local state managers for Step 8 features
   const [p2pUser, setP2pUser] = useState('');
   const [p2pAmount, setP2pAmount] = useState('');
   const [p2pCurrency, setP2pCurrency] = useState('MAD');
@@ -1774,7 +1772,7 @@ export default function PaymentHub({
       )}
 
       {/* ========================================== */}
-      {/* 💸 OVERLAYS & MODALS ZONE */}
+      {/* Overlays and modals */}
       {/* ========================================== */}
 
       {/* 1. LIMIT ADJUSTER DIALOG */}

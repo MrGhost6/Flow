@@ -3,7 +3,6 @@ import "express-async-errors";
 import express, { Router } from "express";
 import path from "path";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
 import Decimal from "decimal.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
@@ -13,13 +12,12 @@ import helmet from "helmet";
 // ─── Database ────────────────────────────────────────────────────────
 import { initPrisma, getPrisma } from "./server/src/database/prisma";
 import { getRedis, initRedis } from "./server/src/database/redis";
-import { getMinio } from "./server/src/database/minio";
+import { getMinio, initBuckets } from "./server/src/database/minio";
 import { getMailer } from "./server/src/database/mailpit";
 import { initQueues, getQueue } from "./server/src/database/bullmq";
 import { httpRequestDuration, httpRequestsTotal, queueJobsTotal, register } from "./server/src/database/prometheus";
 import { getGeminiClient } from "./server/src/lib/ai";
-import { initBuckets } from "./server/src/database/minio";
-import { getUser, getUserWallets, getUserTransactions } from "./server/src/lib/dbHelpers";
+import { getUser, getUserTransactions } from "./server/src/lib/dbHelpers";
 import { auditLog } from "./server/src/common/utils/audit";
 import { sendSuccess, sendError } from "./server/src/common/utils/response";
 
@@ -282,9 +280,6 @@ adminExtra.post("/security/emergency-freeze", async (req, res) => { await auditL
 api.use("/admin", requireAdmin, adminRouter);
 api.use("/admin", requireAdmin, adminExtra);
 
-// ─── Infrastructure routes (JWT required) ─────────────────────────────
-api.get("/logs/query", (req, res) => res.json({ logs: [], message: "Log streaming requires Loki/OpenTelemetry" }));
-
 api.get("/queues/status", (req, res) => {
   res.json({ queues: { email: getQueue("email") ? "active" : "unavailable", notification: getQueue("notification") ? "active" : "unavailable", transaction: getQueue("transaction") ? "active" : "unavailable", fraud: getQueue("fraud") ? "active" : "unavailable" } });
 });
@@ -298,14 +293,6 @@ api.post("/queues/add", async (req, res) => {
   queueJobsTotal.inc({ queue, status: "added" });
   return sendSuccess(res, { message: `Job added to ${queue} queue` });
 });
-
-api.get("/backups", (req, res) => res.json({ backups: [], lastBackup: null, schedule: "Automatic via pg_dump", note: "Configure PostgreSQL backup for production" }));
-api.post("/backups/trigger", (req, res) => sendSuccess(res, { message: "Backup triggered" }));
-api.post("/backups/restore", (req, res) => sendSuccess(res, { message: "Restore initiated" }));
-api.get("/deployments", (req, res) => res.json({ deployments: [], lastDeploy: null, environment: NODE_ENV }));
-api.post("/deployments/trigger", (req, res) => sendSuccess(res, { message: "Deployment triggered via CI/CD" }));
-api.post("/deployments/rollback", (req, res) => sendSuccess(res, { message: "Rollback initiated" }));
-api.post("/infra/toggle-fault", (req, res) => sendSuccess(res, { message: "Fault simulation toggled" }));
 
 // ====================================================================
 // MOUNT ROUTER

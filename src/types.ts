@@ -65,7 +65,6 @@ export interface FlowCard {
   currency: string;
   isFrozen: boolean;
   selectedTemplate: 'obsidian' | 'aurora' | 'cyberGold' | 'hologram';
-  // Step 8 parameters
   cardBrand?: 'visa' | 'mastercard';
   spendingLimit?: number;
   dailyLimit?: number;

@@ -8,7 +8,6 @@ export function getGeminiClient(): GoogleGenAI | null {
   if (!_aiClient) {
     _aiClient = new GoogleGenAI({
       apiKey: config.geminiApiKey,
-      httpOptions: { headers: { "User-Agent": "aistudio-build" } },
     });
   }
   return _aiClient;
